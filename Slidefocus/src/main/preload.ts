@@ -22,8 +22,21 @@ const electronHandler = {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },
+
+  readLocalImage: async (filePath: string) => {
+    try {
+      const imageBuffer = await ipcRenderer.invoke(
+        'read-local-image',
+        filePath,
+      );
+      return imageBuffer;
+    } catch (error) {
+      console.error('读取错误:', error);
+      return null;
+    }
+  },
 };
 
-contextBridge.exposeInMainWorld('electron', electronHandler);
+contextBridge.exposeInMainWorld('readImageAPIs', electronHandler);
 
 export type ElectronHandler = typeof electronHandler;

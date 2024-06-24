@@ -14,6 +14,7 @@ import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
+import { readImage } from './app/readImage';
 
 class AppUpdater {
   constructor() {
@@ -71,8 +72,8 @@ const createWindow = async () => {
 
   mainWindow = new BrowserWindow({
     show: false,
-    width: 1024,
-    height: 728,
+    width: 1600,
+    height: 900,
     icon: getAssetPath('icon.png'),
     webPreferences: {
       preload: app.isPackaged
@@ -112,6 +113,17 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+const testStartUp = () => {
+  ipcMain.handle('read-local-image', async (event, filePath) => {
+    try {
+      return readImage(filePath);
+    } catch (error) {
+      console.error('读取本地图片错误:', error);
+      return null;
+    }
+  });
+};
+
 /**
  * Add event listeners...
  */
@@ -133,5 +145,7 @@ app
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
+
+    testStartUp();
   })
   .catch(console.log);
