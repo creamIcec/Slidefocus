@@ -9,7 +9,9 @@ export default function ExpandButton({
 
   return (
     <button onClick={() => switchExpand()}>
-      <i className="material-symbols-outlined text-3xl">arrow_right</i>
+      <i className="material-symbols-outlined text-3xl text-black dark:text-white">
+        arrow_right
+      </i>
     </button>
   );
 }

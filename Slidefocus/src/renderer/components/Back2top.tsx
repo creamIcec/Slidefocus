@@ -34,7 +34,7 @@ export default function BackToTopButton({
 
   return (
     <div
-      className={`fixed bottom-10 right-10 p-4 bg-blue-500 text-white rounded-full cursor-pointer transition-opacity duration-300 ${
+      className={`fixed bottom-10 right-10 p-4 bg-blue-500/60 backdrop-blur-sm text-white rounded-full cursor-pointer transition-opacity duration-300 ${
         isVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'
       }`}
       onClick={scrollToTop}
