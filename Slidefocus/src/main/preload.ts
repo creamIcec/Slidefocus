@@ -38,7 +38,6 @@ const ConnectionHandler = {
   
       if (filePaths.length > 0) {
         console.log(filePaths);
-        //const imageBuffer = await ipcRenderer.invoke('read-local-image', filePaths[0]);
         return filePaths[0];
       } else {
         return null;
@@ -60,16 +59,22 @@ const ConnectionHandler = {
     }
   },
   //读取文件夹中的图片
-  readFolderImages: async (folderPath: string) => {
+  readLocalFolder: async () => {
     try {
-      const imagePaths = await ipcRenderer.invoke('get-folder-image-paths', folderPath);
-      const images = await Promise.all(imagePaths.map(ConnectionHandler.readLocalImage));
-      return images;
+      const folderPaths = await ipcRenderer.invoke('show-open-dialog-Folder', {});
+      
+      if (folderPaths.length > 0) {
+        const imagePaths = await ipcRenderer.invoke('read-folder-images', folderPaths);
+        return imagePaths;
+      } else {
+        return [];
+      }
     } catch (error) {
-      console.error(`读取文件夹 "${folderPath}" 中的照片时发生错误:`, error);
-      return [];
+      console.error('读取错误:', error);
+      return null;
     }
   },
+  
   //读取收藏夹中的图片
   readFavoriteImages: async () => {
     try {

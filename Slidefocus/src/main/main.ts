@@ -15,6 +15,8 @@ import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readImage } from './app/readImage';
+import fs from "fs";
+import util from "util";
 
 import Protocol, { requestHandler } from './app/protocol';
 
@@ -144,6 +146,44 @@ const setUpChannels = () => {
       return null;
     }
   });
+  ipcMain.handle('read-folder-images', async (event, filePaths) => {
+    try {
+      return filePaths;
+    } catch (error) {
+      console.error('读取本地图片错误:', error);
+      return null;
+    }
+  });
+
+  ipcMain.handle('show-open-dialog-Folder', async (event, options) => {
+    const { dialog } = require('electron');
+    const {canceled, filePaths} = await dialog.showOpenDialog({
+      ...options,
+      properties: ['openDirectory'],
+    });
+
+
+    // 如果用户取消操作或没有选择文件，则返回空数组
+    if (canceled) {
+      return [];
+    } else {
+      // 否则返回选中的文件路径
+      console.log(filePaths);
+
+      const result : string[] = [];
+
+      const readdir = util.promisify(fs.readdir);
+
+      const files = await readdir(filePaths[0]);
+      files.forEach((file) => {
+        result.push(filePaths[0] + '\\' + file);
+      })
+
+      console.log("all files:" + result);
+      return result;
+    }
+
+  });
 
   ipcMain.handle('show-open-dialog', async () => {
     // 打开文件选择框
@@ -153,6 +193,7 @@ const setUpChannels = () => {
         { name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg', 'webp'] }
       ]
     });
+    
   
     // 如果用户取消操作或没有选择文件，则返回空数组
     if (canceled) {
@@ -160,6 +201,9 @@ const setUpChannels = () => {
     } else {
       // 否则返回选中的文件路径
       console.log(filePaths);
+
+
+
       return filePaths;
     }
   });
@@ -177,7 +221,7 @@ const setUpProtocol = () => {
   protocol.registerFileProtocol(protocolName, (request, callback) => {
     const url = request.url.replace(`${protocolName}://`, '');
     try {
-      return callback(decodeURIComponent(escape(url)));
+      return callback(decodeURIComponent(decodeURIComponent(escape(url))));
     } catch (error) {
       // Handle the error as needed
       console.error(error);
