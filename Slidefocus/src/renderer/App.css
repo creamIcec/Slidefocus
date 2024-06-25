@@ -38,11 +38,13 @@
 
 * {
   user-select: none;
+  @apply font-hanserifr;
 }
 
 body {
   overflow: hidden;
   @apply bg-bg;
+  @apply outline-slate-100 outline-4;
 }
 
 .material-symbols-outlined {
@@ -57,7 +59,6 @@ body {
   white-space: nowrap;
   word-wrap: normal;
   direction: ltr;
-  -moz-font-feature-settings: 'liga';
   -moz-osx-font-smoothing: grayscale;
 }
 
@@ -71,12 +72,54 @@ body {
   grid-template-rows: 64px 90vh;
 }
 
+.fullscreen-grid-layout {
+  display: grid;
+  grid-template-areas:
+    'ToolBar ToolBar ToolBar'
+    'LastArrow Image NextArrow';
+  grid-template-columns: 0.2fr 2fr 0.2fr;
+  grid-template-rows: 32px calc(100% - 32px);
+  grid-row-gap: 0.6rem;
+
+  position: fixed;
+  width: 60vw;
+  height: 40vw;
+  top: 50%;
+  left: 50%;
+  margin-top: -20vw;
+  margin-left: -30vw;
+}
+
+.fullscreen-toolbar-grid {
+  grid-area: ToolBar;
+}
+
+.fullscreen-lastarrow-grid {
+  grid-area: LastArrow;
+}
+
+.fullscreen-image-grid {
+  grid-area: Image;
+}
+
+.fullscreen-nextarrow-grid {
+  grid-area: NextArrow;
+}
+
+.like-button-container {
+  position: absolute;
+  bottom: 0;
+  right: 0;
+  padding: 20px;
+}
+
 .app-stream-grid {
   grid-area: Main;
 }
 
 .app-stream {
   overflow-y: scroll;
+  padding-top: calc(64px + 2rem);
 }
 
 .app-sidebar-grid {
@@ -91,6 +134,16 @@ body {
   -webkit-app-region: drag;
 }
 
+.toolbar-container {
+  display: flex;
+  flex-direction: row;
+  gap: 1.2rem;
+  align-items: center;
+  position: absolute;
+  top: 64px;
+  left: 0;
+}
+
 .no-drag {
   -webkit-app-region: no-drag;
 }
@@ -99,7 +152,13 @@ body {
   display: grid;
   grid-template-columns: 1fr 1fr 1fr 1fr;
   grid-template-rows: 100%;
-  grid-gap: 0.6rem;
+  grid-gap: 1.2rem;
+}
+
+.stream-column-container {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
 }
 
 .sidebar-container {
