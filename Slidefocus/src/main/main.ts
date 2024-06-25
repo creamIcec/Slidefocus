@@ -75,6 +75,8 @@ const createWindow = async () => {
     width: 1600,
     height: 900,
     icon: getAssetPath('icon.png'),
+    frame: false,
+    autoHideMenuBar: true,
     webPreferences: {
       preload: app.isPackaged
         ? path.join(__dirname, 'preload.js')
@@ -113,7 +115,21 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
-const testStartUp = () => {
+const setUpChannels = () => {
+  ipcMain.on('minimizeApp', () => {
+    mainWindow?.minimize();
+  });
+  ipcMain.on('maximizeApp', () => {
+    if (mainWindow?.isMaximized()) {
+      mainWindow?.unmaximize();
+    } else {
+      mainWindow?.maximize();
+    }
+  });
+  ipcMain.on('closeApp', () => {
+    mainWindow?.close();
+  });
+
   ipcMain.handle('read-local-image', async (event, filePath) => {
     try {
       return readImage(filePath);
@@ -146,6 +162,6 @@ app
       if (mainWindow === null) createWindow();
     });
 
-    testStartUp();
+    setUpChannels();
   })
   .catch(console.log);

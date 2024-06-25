@@ -6,8 +6,8 @@ const root = createRoot(container);
 root.render(<App />);
 
 // calling IPC exposed from preload script
-window.readImageAPIs.ipcRenderer.once('ipc-example', (arg) => {
+window.connectionAPIs.ipcRenderer.once('ipc-example', (arg) => {
   // eslint-disable-next-line no-console
   console.log(arg);
 });
-window.readImageAPIs.ipcRenderer.sendMessage('ipc-example', ['ping']);
+window.connectionAPIs.ipcRenderer.sendMessage('ipc-example', ['ping']);

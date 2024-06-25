@@ -11,6 +11,40 @@
     format('woff2');
 }
 
+@font-face {
+  font-family: 'Source Han Serif Regular';
+  font-style: normal;
+  font-weight: 400;
+  src: url('./fonts/SourceHanSerifSC-VF.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Source Han Serif Bold';
+  font-style: normal;
+  font-weight: 600;
+  src: url('./fonts/SourceHanSerifSC-VF.otf') format('opentype');
+}
+
+@font-face {
+  font-family: 'Source Han Serif Heavy';
+  font-style: normal;
+  font-weight: 800;
+  src: url('./fonts/SourceHanSerifSC-VF.otf') format('opentype');
+}
+
+::-webkit-scrollbar {
+  display: none;
+}
+
+* {
+  user-select: none;
+}
+
+body {
+  overflow: hidden;
+  @apply bg-bg;
+}
+
 .material-symbols-outlined {
   font-family: 'Material Symbols Outlined';
   font-weight: normal;
@@ -25,6 +59,59 @@
   direction: ltr;
   -moz-font-feature-settings: 'liga';
   -moz-osx-font-smoothing: grayscale;
+}
+
+.app-grid-layout {
+  display: grid;
+  grid-template-areas:
+    'TitleBar TitleBar TitleBar'
+    'Main Main SideBar';
+  grid-column-gap: 0.6rem;
+  grid-template-columns: 1fr 1fr 0.1fr;
+  grid-template-rows: 64px 90vh;
+}
+
+.app-stream-grid {
+  grid-area: Main;
+}
+
+.app-stream {
+  overflow-y: scroll;
+}
+
+.app-sidebar-grid {
+  grid-area: SideBar;
+}
+
+.app-titlebar-grid {
+  grid-area: TitleBar;
+}
+
+.app-titlebar {
+  -webkit-app-region: drag;
+}
+
+.no-drag {
+  -webkit-app-region: no-drag;
+}
+
+.stream-container {
+  display: grid;
+  grid-template-columns: 1fr 1fr 1fr 1fr;
+  grid-template-rows: 100%;
+  grid-gap: 0.6rem;
+}
+
+.sidebar-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.sidebar-bottom-icons {
+  position: absolute;
+  bottom: 0;
+  padding-bottom: 20px;
 }
 
 button {

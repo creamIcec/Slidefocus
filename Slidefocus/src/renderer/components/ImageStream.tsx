@@ -8,7 +8,7 @@ export default function ImageStream() {
   const imagesPlaceholders: ReactNode[] = [];
 
   for (let i = 0; i < TEST_CONTAINERS_ITEMS; i++) {
-    imagesPlaceholders.push(<div className="w-64 h-96 bg-slate-500"></div>);
+    imagesPlaceholders.push(<div className="w-full h-48 bg-slate-500"></div>);
   }
 
   for (let i = 0; i < TEST_CONTAINERS_COLUMNS; i++) {
@@ -16,8 +16,11 @@ export default function ImageStream() {
   }
 
   return (
-    <div className="flex flex-nowrap flex-row gap-10 w-48 h-96 absolute top-10 p-10">
-      {imagesColumns}
+    <div className="app-stream-grid app-stream p-5">
+      <div className="">
+        <span className="text-xl text-black font-hanserifb p-5">最近看过</span>
+      </div>
+      <div className="stream-container p-5">{imagesColumns}</div>
     </div>
   );
 }

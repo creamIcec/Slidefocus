@@ -2,9 +2,13 @@
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
 
-export type Channels = 'ipc-example';
+export type Channels =
+  | 'ipc-example'
+  | 'minimizeApp'
+  | 'maximizeApp'
+  | 'closeApp';
 
-const electronHandler = {
+const ConnectionHandler = {
   ipcRenderer: {
     sendMessage(channel: Channels, ...args: unknown[]) {
       ipcRenderer.send(channel, ...args);
@@ -37,6 +41,6 @@ const electronHandler = {
   },
 };
 
-contextBridge.exposeInMainWorld('readImageAPIs', electronHandler);
+contextBridge.exposeInMainWorld('connectionAPIs', ConnectionHandler);
 
-export type ElectronHandler = typeof electronHandler;
+export type ElectronHandler = typeof ConnectionHandler;
