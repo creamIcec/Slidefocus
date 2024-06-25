@@ -43,8 +43,8 @@
 
 body {
   overflow: hidden;
-  @apply bg-bg;
-  @apply outline-slate-100 outline-4;
+  @apply bg-bg dark:bg-bg_dark;
+  @apply outline-slate-200 dark:outline-slate-50 outline-4;
 }
 
 .material-symbols-outlined {

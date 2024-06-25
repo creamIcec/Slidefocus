@@ -84,21 +84,25 @@ export default function ImageStream({
     <div className="app-stream-grid app-stream px-5" ref={container}>
       <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
         <ExpandButton expandFunction={switchRecent}></ExpandButton>
-        <span className="text-xl text-black font-hanserifb">最近看过</span>
+        <span className="text-xl text-black dark:text-white font-hanserifb">
+          最近看过
+        </span>
       </div>
       <div className="stream-container p-5">
         {recentVisible ? imagesColumns : null}
       </div>
       <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
         <ExpandButton expandFunction={switchLiked}></ExpandButton>
-        <span className="text-xl text-black font-hanserifb">喜欢的图片</span>
+        <span className="text-xl text-black dark:text-white font-hanserifb">
+          喜欢的图片
+        </span>
       </div>
       <div className="stream-container p-5">
         {likedVisible ? imagesColumns : null}
       </div>
       <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
         <ExpandButton expandFunction={switchFolder}></ExpandButton>
-        <span className="text-xl text-black font-hanserifb">
+        <span className="text-xl text-black dark:text-white font-hanserifb">
           "打开的文件夹路径"
         </span>
       </div>

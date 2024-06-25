@@ -8,6 +8,7 @@ import ToolBar from './components/ToolBar';
 import FullScreenImageView, { Base64 } from './components/FullScreenImageView';
 import { useRef, useState } from 'react';
 import BackToTopButton from './components/Back2top';
+import ImageOpenButton from './components/ImageOpenButton';
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
@@ -28,6 +29,7 @@ function AppContainer() {
           closeImageViewFunction={() => setIsViewerPresent(false)}
         ></FullScreenImageView>
       ) : null}
+      <ImageOpenButton></ImageOpenButton>
     </div>
   );
 }
