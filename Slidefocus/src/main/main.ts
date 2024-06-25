@@ -9,14 +9,22 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
+import {
+  app,
+  BrowserWindow,
+  shell,
+  ipcMain,
+  protocol,
+  net,
+  dialog,
+} from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readImage } from './app/readImage';
-import fs from "fs";
-import util from "util";
+import fs from 'fs';
+import util from 'util';
 
 import Protocol, { requestHandler } from './app/protocol';
 
@@ -157,11 +165,10 @@ const setUpChannels = () => {
 
   ipcMain.handle('show-open-dialog-Folder', async (event, options) => {
     const { dialog } = require('electron');
-    const {canceled, filePaths} = await dialog.showOpenDialog({
+    const { canceled, filePaths } = await dialog.showOpenDialog({
       ...options,
       properties: ['openDirectory'],
     });
-
 
     // 如果用户取消操作或没有选择文件，则返回空数组
     if (canceled) {
@@ -170,19 +177,18 @@ const setUpChannels = () => {
       // 否则返回选中的文件路径
       console.log(filePaths);
 
-      const result : string[] = [];
+      const result: string[] = [];
 
       const readdir = util.promisify(fs.readdir);
 
       const files = await readdir(filePaths[0]);
       files.forEach((file) => {
         result.push(filePaths[0] + '\\' + file);
-      })
+      });
 
-      console.log("all files:" + result);
+      console.log('all files:' + result);
       return result;
     }
-
   });
 
   ipcMain.handle('show-open-dialog', async () => {
@@ -190,11 +196,10 @@ const setUpChannels = () => {
     const { canceled, filePaths } = await dialog.showOpenDialog({
       properties: ['openFile'],
       filters: [
-        { name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg', 'webp'] }
-      ]
+        { name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg', 'webp'] },
+      ],
     });
-    
-  
+
     // 如果用户取消操作或没有选择文件，则返回空数组
     if (canceled) {
       return [];
@@ -202,17 +207,14 @@ const setUpChannels = () => {
       // 否则返回选中的文件路径
       console.log(filePaths);
 
-
-
       return filePaths;
     }
   });
-  
 };
 
 const escape = (uriStr: string) => {
   return uriStr.replace(/%/g, '%25');
-}
+};
 
 const setUpProtocol = () => {
   // Name the protocol whatever you want.

@@ -2,7 +2,6 @@ import { ReactNode, useEffect, useRef, useState } from 'react';
 import ExpandButton from './ExpandButton';
 import BackToTopButton from './Back2top';
 
-
 /*
   1. 读取下一张图片
   2. 由于固定高度，根据图片长宽比计算出对应宽度，进入第3步
@@ -71,100 +70,102 @@ export default function ImageStream({
   }, [imagePaths]);
 
   useEffect(() => {
-    console.log("streamContainer: " + streamContainer);
-  }, [streamContainer])
+    console.log('streamContainer: ' + streamContainer);
+  }, [streamContainer]);
 
   const buildImageStream = () => {
-    if(!imagePaths){
+    if (!imagePaths) {
       return;
     }
-    const _streamContainer : any[][] = [];  //大的容器
-    let rowContainer1 : any[] | null;  //前一行的容器
-    let rowContainer2 : any[] | null; //后一行的容器
-    for(let i = 0; i < imagePaths?.length; i++){
+    const _streamContainer: any[][] = []; //大的容器
+    let rowContainer1: any[] | null; //前一行的容器
+    let rowContainer2: any[] | null; //后一行的容器
+    let remainingWidth = container.current?.clientWidth; //剩余宽度
+    let processed = 0;
+    for (let i = 0; i < imagePaths?.length; i++) {
       const image = new Image();
-      image.onload = function(){
-          let remainingWidth = container.current?.clientWidth;  //剩余宽度
-        
-          const width = image.width;
-          const height = image.height;
+      image.onload = function () {
+        const width = image.width;
+        const height = image.height;
 
-          const ratio = width / height; //长宽比
+        const ratio = width / height; //长宽比
 
-          const displayWidth = FIXED_HEIGHT * ratio;
+        const displayWidth = FIXED_HEIGHT * ratio;
 
-          if(displayWidth <= remainingWidth!){
-              if(!rowContainer1){
-                  rowContainer1 = [];
-                  rowContainer1.push(
-                    <div style={{width: displayWidth, height: FIXED_HEIGHT}}>
-                      <img src={imagePaths[i]} style={{width: '100%'}}></img>
-                    </div>
-                  );
-              }else{
-                  rowContainer1.push(
-                    <div style={{width: displayWidth, height: FIXED_HEIGHT}}>
-                      <img src={imagePaths[i]} style={{width: '100%'}}></img>
-                    </div>
-                  );
-              }
-              remainingWidth! -= displayWidth;
-              console.log("临时:" + _streamContainer);
-          }else{
-             if(!rowContainer1){
-              rowContainer1 = [];
-             }else{
-              rowContainer1.pop();
-             }
-             rowContainer1.push(
-                <div style={{width: remainingWidth, height: FIXED_HEIGHT}}>
-                    <img src={imagePaths[i - 1]} style={{width: '100%'}}></img>
-                </div>
-             );
-             _streamContainer.push(rowContainer1);
-             rowContainer1 = null;
-
-             remainingWidth = container.current?.clientWidth;  //重置容器宽度
-
-             rowContainer2 = [];
-             if(displayWidth > remainingWidth!){
-                rowContainer2.push(
-                  <div style={{width: displayWidth, height: FIXED_HEIGHT, overflow: 'hidden'}}>
-                      <img src={imagePaths[i]}></img>
-                  </div>
-                );
-             }else{
-                rowContainer2.push(
-                  <div style={{width: displayWidth, height: FIXED_HEIGHT}}>
-                      <img src={imagePaths[i]} style={{width: '100%'}}></img>
-                  </div>
-                )
-             }
-
-             _streamContainer.push(rowContainer2);
-             console.log("临时:" + _streamContainer);
-             rowContainer2 = null;
+        if (displayWidth <= remainingWidth!) {
+          if (!rowContainer1) {
+            rowContainer1 = [];
           }
-          
-          setStreamContainer(_streamContainer);
-          
+          rowContainer1.push(
+            <div style={{ width: displayWidth, height: FIXED_HEIGHT }}>
+              <img src={imagePaths[i]}></img>
+            </div>,
+          );
+          remainingWidth! -= displayWidth;
+          processed++;
+        } else {
+          if (!rowContainer1) {
+            rowContainer1 = [];
+          } else {
+            rowContainer1.pop();
+          }
+          rowContainer1.push(
+            <div
+              style={{
+                width: remainingWidth,
+                height: FIXED_HEIGHT,
+                overflow: 'hidden',
+              }}
+            >
+              <img src={imagePaths[i - 1]}></img>
+            </div>,
+          );
+          _streamContainer.push(rowContainer1);
+          rowContainer1 = null;
+
+          remainingWidth = container.current?.clientWidth; //重置容器宽度
+
+          rowContainer2 = [];
+          if (displayWidth > remainingWidth!) {
+            rowContainer2.push(
+              <div
+                style={{
+                  height: FIXED_HEIGHT,
+                  overflow: 'hidden',
+                }}
+              >
+                <img src={imagePaths[i]}></img>
+              </div>,
+            );
+          } else {
+            rowContainer2.push(
+              <div style={{ width: displayWidth, height: FIXED_HEIGHT }}>
+                <img src={imagePaths[i]}></img>
+              </div>,
+            );
+          }
+
+          rowContainer1 = rowContainer2;
         }
+        if (processed == imagePaths.length) {
+          _streamContainer.push(rowContainer1!);
+        }
+        setStreamContainer(_streamContainer);
+      };
+
       image.src = imagePaths[i];
     }
-    
-  }
+  };
 
   const buildImageRows = () => {
     const result = [];
-    for(let i = 0; i < streamContainer!.length; i++){
+    for (let i = 0; i < streamContainer!.length; i++) {
       result.push(
-        <div className="stream-row-container">
-           {streamContainer![i]}
-        </div>
+        <div className="stream-row-container">{streamContainer![i]}</div>,
       );
     }
     return result;
-  }
+  };
 
   const switchRecent = () => {
     setRecentVisible(!recentVisible);
@@ -207,7 +208,7 @@ export default function ImageStream({
         </span>
       </div>
       <div className="stream-container p-5">
-        {buildImageRows()}
+        {folderVisible ? buildImageRows() : null}
       </div>
       <BackToTopButton container={container}></BackToTopButton>
     </div>

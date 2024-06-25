@@ -151,7 +151,7 @@ body {
 .stream-container {
   display: flex;
   flex-direction: column;
-  gap: 0.6rem;
+  gap: 20px;
 }
 
 .stream-column-container {
@@ -163,6 +163,7 @@ body {
 .stream-row-container {
   display: flex;
   flex-direction: row;
+  justify-content: space-between;
   gap: 1.2rem;
 }
 
