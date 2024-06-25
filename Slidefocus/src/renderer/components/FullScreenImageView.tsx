@@ -1,13 +1,11 @@
 import FullScreenButton from './FullScreenButton';
 import LikeButton from './LikeButton';
 
-export type Base64 = string;
-
 export default function FullScreenImageView({
   imageData,
   closeImageViewFunction,
 }: {
-  imageData: Base64 | null;
+  imageData: string | undefined;
   closeImageViewFunction: Function;
 }) {
   return (
@@ -34,7 +32,7 @@ export default function FullScreenImageView({
           ></FullScreenButton>
         </div>
         <div className="fullscreen-image-grid bg-slate-500">
-          <img src="app://G:\Dev\Projects\Slidefocus\Slidefocus\testImage\test.jpg" />
+          <img src={imageData} />
         </div>
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-nextarrow-grid">
           <FullScreenButton

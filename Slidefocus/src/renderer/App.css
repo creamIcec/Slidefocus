@@ -149,15 +149,20 @@ body {
 }
 
 .stream-container {
-  display: grid;
-  grid-template-columns: 1fr 1fr 1fr 1fr;
-  grid-template-rows: 100%;
-  grid-gap: 1.2rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
 }
 
 .stream-column-container {
   display: flex;
   flex-direction: column;
+  gap: 1.2rem;
+}
+
+.stream-row-container {
+  display: flex;
+  flex-direction: row;
   gap: 1.2rem;
 }
 
