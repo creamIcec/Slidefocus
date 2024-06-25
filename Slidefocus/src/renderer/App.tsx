@@ -5,14 +5,16 @@ import TitleBar from './components/TitleBar';
 import ImageStream from './components/ImageStream';
 import SideBar from './components/SideBar';
 import ToolBar from './components/ToolBar';
-import FullScreenImageView, { Base64 } from './components/FullScreenImageView';
+import FullScreenImageView from './components/FullScreenImageView';
 import { useRef, useState } from 'react';
 import BackToTopButton from './components/Back2top';
+import OpenFileButton from './components/OpenFileButton';
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
+  const [imagePath, setImagePath] = useState<string>('');
 
-  const switchViewer = (imageData: Base64) => {
+  const switchViewer = (imageData: string) => {
     setIsViewerPresent(!isViewerPresent);
   };
 
@@ -24,10 +26,11 @@ function AppContainer() {
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
-          imageData={null}
+          imageData={imagePath}
           closeImageViewFunction={() => setIsViewerPresent(false)}
         ></FullScreenImageView>
       ) : null}
+      <OpenFileButton setPath={setImagePath}></OpenFileButton>
     </div>
   );
 }

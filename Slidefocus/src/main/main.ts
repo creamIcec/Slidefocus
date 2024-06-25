@@ -9,7 +9,7 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net, dialog } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
@@ -144,7 +144,31 @@ const setUpChannels = () => {
       return null;
     }
   });
+
+  ipcMain.handle('show-open-dialog', async () => {
+    // 打开文件选择框
+    const { canceled, filePaths } = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      filters: [
+        { name: 'Images', extensions: ['jpg', 'png', 'gif', 'jpeg', 'webp'] }
+      ]
+    });
+  
+    // 如果用户取消操作或没有选择文件，则返回空数组
+    if (canceled) {
+      return [];
+    } else {
+      // 否则返回选中的文件路径
+      console.log(filePaths);
+      return filePaths;
+    }
+  });
+  
 };
+
+const escape = (uriStr: string) => {
+  return uriStr.replace(/%/g, '%25');
+}
 
 const setUpProtocol = () => {
   // Name the protocol whatever you want.
@@ -153,7 +177,7 @@ const setUpProtocol = () => {
   protocol.registerFileProtocol(protocolName, (request, callback) => {
     const url = request.url.replace(`${protocolName}://`, '');
     try {
-      return callback(decodeURIComponent(url));
+      return callback(decodeURIComponent(escape(url)));
     } catch (error) {
       // Handle the error as needed
       console.error(error);
