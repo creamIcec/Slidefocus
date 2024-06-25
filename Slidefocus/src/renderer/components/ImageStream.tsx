@@ -1,5 +1,6 @@
-import { ReactNode, useState } from 'react';
+import { ReactNode, useEffect, useRef, useState } from 'react';
 import ExpandButton from './ExpandButton';
+import BackToTopButton from './Back2top';
 
 type Range = {
   start: number;
@@ -8,7 +9,10 @@ type Range = {
 
 function showImageViewer() {}
 
-function getRandomHeightPlaceHolder(range: Range, ShowViewerFunction: Function) {
+function getRandomHeightPlaceHolder(
+  range: Range,
+  ShowViewerFunction: Function,
+) {
   range.end = Math.max(range.end, 0);
   range.start = Math.max(range.start, 0);
 
@@ -22,19 +26,29 @@ function getRandomHeightPlaceHolder(range: Range, ShowViewerFunction: Function) 
   );
 
   return (
-    <div className={'w-full bg-slate-500'} style={{ height }} onClick={() => ShowViewerFunction('')}></div>
+    <div
+      className={'w-full bg-slate-500'}
+      style={{ height }}
+      onClick={() => ShowViewerFunction('')}
+    ></div>
   );
 }
 
 function getColumnPlaceHolders(columns: number, ShowViewerFunction: Function) {
   const result = [];
   for (let i = 0; i < columns; i++) {
-    result.push(getRandomHeightPlaceHolder({ start: 128, end: 512 }, ShowViewerFunction));
+    result.push(
+      getRandomHeightPlaceHolder({ start: 128, end: 512 }, ShowViewerFunction),
+    );
   }
   return result;
 }
 
-export default function ImageStream({ShowViewerFunction} : {ShowViewerFunction: Function}) {
+export default function ImageStream({
+  ShowViewerFunction,
+}: {
+  ShowViewerFunction: Function;
+}) {
   const TEST_CONTAINERS_ITEMS = 10;
   const TEST_CONTAINERS_COLUMNS = 4;
 
@@ -56,6 +70,8 @@ export default function ImageStream({ShowViewerFunction} : {ShowViewerFunction: 
     setFolderVisible(!folderVisible);
   };
 
+  const container = useRef<HTMLDivElement>(null);
+
   for (let i = 0; i < TEST_CONTAINERS_COLUMNS; i++) {
     imagesColumns.push(
       <div className="stream-column-container">
@@ -65,7 +81,7 @@ export default function ImageStream({ShowViewerFunction} : {ShowViewerFunction: 
   }
 
   return (
-    <div className="app-stream-grid app-stream px-5">
+    <div className="app-stream-grid app-stream px-5" ref={container}>
       <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
         <ExpandButton expandFunction={switchRecent}></ExpandButton>
         <span className="text-xl text-black font-hanserifb">最近看过</span>
@@ -89,6 +105,7 @@ export default function ImageStream({ShowViewerFunction} : {ShowViewerFunction: 
       <div className="stream-container p-5">
         {folderVisible ? imagesColumns : null}
       </div>
+      <BackToTopButton container={container}></BackToTopButton>
     </div>
   );
 }

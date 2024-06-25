@@ -9,12 +9,14 @@
  * `./src/main.js` using webpack. This gives us some performance wins.
  */
 import path from 'path';
-import { app, BrowserWindow, shell, ipcMain } from 'electron';
+import { app, BrowserWindow, shell, ipcMain, protocol, net } from 'electron';
 import { autoUpdater } from 'electron-updater';
 import log from 'electron-log';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 import { readImage } from './app/readImage';
+
+import Protocol, { requestHandler } from './app/protocol';
 
 class AppUpdater {
   constructor() {
@@ -60,6 +62,10 @@ const installExtensions = async () => {
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
+  }
+
+  if (!isDebug) {
+    protocol.registerBufferProtocol(Protocol.scheme, Protocol.requestHandler);
   }
 
   const RESOURCES_PATH = app.isPackaged
@@ -140,6 +146,21 @@ const setUpChannels = () => {
   });
 };
 
+const setUpProtocol = () => {
+  // Name the protocol whatever you want.
+  const protocolName = 'app';
+
+  protocol.registerFileProtocol(protocolName, (request, callback) => {
+    const url = request.url.replace(`${protocolName}://`, '');
+    try {
+      return callback(decodeURIComponent(url));
+    } catch (error) {
+      // Handle the error as needed
+      console.error(error);
+    }
+  });
+};
+
 /**
  * Add event listeners...
  */
@@ -163,5 +184,6 @@ app
     });
 
     setUpChannels();
+    setUpProtocol();
   })
   .catch(console.log);

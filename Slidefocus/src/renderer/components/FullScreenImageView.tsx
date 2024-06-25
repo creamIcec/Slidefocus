@@ -34,7 +34,7 @@ export default function FullScreenImageView({
           ></FullScreenButton>
         </div>
         <div className="fullscreen-image-grid bg-slate-500">
-          <img />
+          <img src="app://G:\Dev\Projects\Slidefocus\Slidefocus\testImage\test.jpg" />
         </div>
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-nextarrow-grid">
           <FullScreenButton

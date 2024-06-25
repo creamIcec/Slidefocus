@@ -6,7 +6,8 @@ import ImageStream from './components/ImageStream';
 import SideBar from './components/SideBar';
 import ToolBar from './components/ToolBar';
 import FullScreenImageView, { Base64 } from './components/FullScreenImageView';
-import { useState } from 'react';
+import { useRef, useState } from 'react';
+import BackToTopButton from './components/Back2top';
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
