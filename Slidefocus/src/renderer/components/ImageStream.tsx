@@ -2,7 +2,8 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
 import ExpandPanelTitle from './ExpandPanelTitle';
-import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
+import { useRencentFiles } from '../hooks/useRencentFiles';
+
 
 /*
   1. 读取下一张图片
@@ -11,35 +12,197 @@ import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
   4. 转移到第二行，将上一行的最后一张宽度占满，如果宽度大于第二行行宽，则裁剪到行宽并放入，如果小于则放入；回到第1步
 */
 
+type ImagePathsType = 'folder' | 'recent' | 'liked';
+
 export default function ImageStream({
-  imagePaths,
+  likedImagePaths,
+  folderImagePaths,
   ShowViewerFunction,
 }: {
-  imagePaths: string[] | null;
+  likedImagePaths: string[] | null;
+  folderImagePaths: string[] | null;
   ShowViewerFunction: Function;
 }) {
   let FOLLOW_WINDOW_HEIGHT = 300;
   const MIN_DISPLAY_WIDTH = 300;
 
-  const [recentVisible, setRecentVisible] = useState<boolean>(true);
+  const [recentVisible, setRecentVisible] = useState<boolean>(false);
   const [likedVisible, setLikedVisible] = useState<boolean>(false);
   const [folderVisible, setFolderVisible] = useState<boolean>(false);
-  const [streamContainer, setStreamContainer] = useState<any[][]>([]);
-  const [imageCache, setImageCache] = useState<HTMLImageElement[]>([]);
+  const [folderStreamContainer, setFolderStreamContainer] = useState<any[][]>([]);
+  const [recentStreamContainer, setRecentStreamContainer] = useState<any[][]>([]);
+  const [likedStreamContainer, setLikedStreamContainer] = useState<any[][]>([]);
+  const [folderImageCache, setFolderImageCache] = useState<HTMLImageElement[]>([]);
+  const [recentImageCache, setRecentImageCache] = useState<HTMLImageElement[]>([]);
+  const [likedImageCache, setLikedImageCache] = useState<HTMLImageElement[]>([]);
 
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
+  const {recentImagePaths, refresh, setRefresh } = useRencentFiles();
+
+  const handleImageClick = async (imagePath: any, liked: any, tags: any) => {
+    const updatedClickedImagePaths = await window.connectionAPIs.saveRecentImages(
+      imagePath,
+      liked,
+      tags
+    );
+    setRefresh(!refresh);
+    //window.connectionAPIs.setState({ clickedImagePaths: updatedClickedImagePaths });
+  };
+
+  const initFolderImages = (shouldbuildPath: boolean) => {
+    if (!folderImagePaths) {
+      return;
+    }
+    let initedCount = 0;
+    const imageTempContainer: HTMLImageElement[] = [];
+    if (shouldbuildPath) {
+      for (let i = 0; i < folderImagePaths?.length; i++) {
+        const image = new Image();
+        image.onload = function () {
+          initedCount++;
+          imageTempContainer.push(image);
+          if (initedCount == folderImagePaths?.length) {
+            setFolderImageCache(imageTempContainer);
+            sortImages(imageTempContainer);
+            buildImageStream('folder', imageTempContainer);
+          }
+        };
+        image.src = folderImagePaths[i];
+      }
+    } else {
+      buildImageStream('folder', folderImageCache);
+    }
+  }
+
+  const initRecentImages = (shouldbuildPath: boolean) => {
+    if (!recentImagePaths) {
+      return;
+    }
+    let initedCount = 0;
+    const imageTempContainer: HTMLImageElement[] = [];
+    if (shouldbuildPath) {
+      for (let i = 0; i < recentImagePaths?.length; i++) {
+        const image = new Image();
+        image.onload = function () {
+          initedCount++;
+          imageTempContainer.push(image);
+          if (initedCount == recentImagePaths?.length) {
+            setRecentImageCache(imageTempContainer);
+            sortImages(imageTempContainer);
+            buildImageStream('recent', imageTempContainer);
+          }
+        };
+        image.src = recentImagePaths[i];
+      }
+    } else {
+      buildImageStream('recent', recentImageCache);
+    }
+  }
+
+  const initLikedImages = (shouldbuildPath: boolean) => {
+    if (!likedImagePaths) {
+      return;
+    }
+    let initedCount = 0;
+    const imageTempContainer: HTMLImageElement[] = [];
+    if (shouldbuildPath) {
+      for (let i = 0; i < likedImagePaths?.length; i++) {
+        const image = new Image();
+        image.onload = function () {
+          initedCount++;
+          imageTempContainer.push(image);
+          if (initedCount == likedImagePaths?.length) {
+            setLikedImageCache(imageTempContainer);
+            sortImages(imageTempContainer);
+            buildImageStream('liked', imageTempContainer);
+          }
+        };
+        image.src = likedImagePaths[i];
+      }
+    } else {
+      buildImageStream('liked', likedImageCache);
+    }
+  }
+
+  /*const initImages = (type: ImagePathsType, shouldbuildPath: boolean) => {
+    debugger;
+    if (!folderImagePaths) {
+      return;
+    }
+    let initedCount = 0;
+    const imageTempContainer: HTMLImageElement[] = [];
+    if (shouldbuildPath) {
+      for (let i = 0; i < folderImagePaths?.length; i++) {
+        const image = new Image();
+        image.onload = function () {
+          initedCount++;
+          imageTempContainer.push(image);
+          if (initedCount == folderImagePaths?.length) {
+            switch(type){
+              case 'folder':
+                setFolderImageCache(imageTempContainer);
+                break;
+              case 'liked':
+                setLikedImageCache(imageTempContainer);
+                break;
+              case 'recent':
+                setRecentImageCache(imageTempContainer);
+                break;
+            }
+            sortImages(imageTempContainer);
+            buildImageStream(type, imageTempContainer);
+          }
+        };
+        image.src = folderImagePaths[i];
+      }
+    } else {
+      switch(type){
+        case 'folder':
+          buildImageStream(type, folderImageCache);
+          break;
+        case 'liked':
+          buildImageStream(type, likedImageCache);
+          break;
+        case 'recent':
+          buildImageStream(type, recentImageCache);
+          break;
+      }
+    }
+  };*/
+
   useEffect(() => {
-    initImages(false);
+    initRecentImages(true);
+    initLikedImages(true);
+  }, []);
+
+  useEffect(() => {
+    initAllImages();
   }, [windowSize.height]);
 
   useEffect(() => {
-    initImages(true);
-  }, [imagePaths]);
+    initFolderImages(true);
+  }, [folderImagePaths]);
 
   useEffect(() => {
-    console.log('streamContainer: ' + streamContainer);
-  }, [streamContainer]);
+    initRecentImages(true);
+  }, [recentImagePaths]);
+
+  useEffect(() => {
+    initLikedImages(true);
+  }, [likedImagePaths]);
+
+  useEffect(() => {
+    console.log('streamContainer: ' + folderStreamContainer);
+  }, [folderStreamContainer]);
+
+  useEffect(() => {
+    console.log('streamContainer: ' + likedStreamContainer);
+  }, [likedStreamContainer]);
+
+  useEffect(() => {
+    console.log('streamContainer: ' + recentStreamContainer);
+  }, [recentStreamContainer]);
 
   const sortImages = (imagesArray: HTMLImageElement[]) => {
     imagesArray.sort((item1, item2) => {
@@ -47,33 +210,13 @@ export default function ImageStream({
     });
   };
 
-  const initImages = (shouldbuildPath: boolean) => {
-    if (!imagePaths) {
-      return;
-    }
-    let initedCount = 0;
-    const imageTempContainer: HTMLImageElement[] = [];
-    if (shouldbuildPath) {
-      for (let i = 0; i < imagePaths?.length; i++) {
-        const image = new Image();
-        image.onload = function () {
-          initedCount++;
-          imageTempContainer.push(image);
-          if (initedCount == imagePaths?.length) {
-            setImageCache(imageTempContainer);
-            sortImages(imageTempContainer);
-            buildImageStream(imageTempContainer);
-          }
-        };
-        image.src = imagePaths[i];
-      }
-    } else {
-      console.log('窗口缩放重建');
-      buildImageStream(imageCache);
-    }
-  };
+  const initAllImages = () => {
+    initFolderImages(false);
+    initRecentImages(false);
+    initLikedImages(false);
+  }
 
-  const buildImageStream = (imageTempContainer: HTMLImageElement[]) => {
+  const buildImageStream = (type: ImagePathsType, imageTempContainer: HTMLImageElement[]) => {
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
@@ -101,6 +244,7 @@ export default function ImageStream({
             className="transition hover:scale-110 hover:shadow-2xl"
             onClick={() => {
               ShowViewerFunction(i);
+              handleImageClick(imageTempContainer[i].src, false, '');
             }}
           />,
         );
@@ -124,6 +268,7 @@ export default function ImageStream({
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
                 ShowViewerFunction(i - 1);
+                handleImageClick(imageTempContainer[i - 1].src, false, '');
               }}
             />
           </div>,
@@ -146,6 +291,7 @@ export default function ImageStream({
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
                 ShowViewerFunction(i);
+                handleImageClick(imageTempContainer[i].src, false, '');
               }}
             />,
           );
@@ -158,6 +304,7 @@ export default function ImageStream({
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
                 ShowViewerFunction(i);
+                handleImageClick(imageTempContainer[i].src, false, '');
               }}
             />,
           );
@@ -169,19 +316,42 @@ export default function ImageStream({
       if (processed == imageTempContainer.length) {
         _streamContainer.push(rowContainer1!);
       }
-      setStreamContainer(_streamContainer);
+      switch(type){
+          case 'folder':
+            setFolderStreamContainer(_streamContainer);
+            break;
+          case 'recent':
+            setRecentStreamContainer(_streamContainer);
+            break;
+          case 'liked':
+            setLikedStreamContainer(_streamContainer);
+            break;
+      }
+      
     }
   };
 
-  const buildImageRows = () => {
+  const buildImageRows = (type: ImagePathsType) => {
+    let container;
+    switch(type){
+      case 'folder':
+        container = folderStreamContainer;
+        break;
+      case 'liked':
+        container = likedStreamContainer;
+        break;
+      case 'recent':
+        container = recentStreamContainer;
+        break;
+    }
     const result = [];
-    for (let i = 0; i < streamContainer!.length; i++) {
+    for (let i = 0; i < container!.length; i++) {
       result.push(
         <div
           className="stream-row-container"
           style={{ height: FOLLOW_WINDOW_HEIGHT }}
         >
-          {streamContainer![i]}
+          {container![i]}
         </div>,
       );
     }
@@ -209,21 +379,21 @@ export default function ImageStream({
         title="最近看过"
       ></ExpandPanelTitle>
       <div className="stream-container p-5">
-        {/*recentVisible ? imagesRows : null*/}
+        {recentVisible ? buildImageRows('recent') : null}
       </div>
       <ExpandPanelTitle
         expandFunction={switchLiked}
         title="喜欢的图片"
       ></ExpandPanelTitle>
       <div className="stream-container p-5">
-        {/*likedVisible ? imagesRows : null*/}
+        {likedVisible ? buildImageRows('liked') : null}
       </div>
       <ExpandPanelTitle
         expandFunction={switchFolder}
         title="打开的文件夹路径"
       ></ExpandPanelTitle>
       <div className="stream-container p-5">
-        {folderVisible ? buildImageRows() : null}
+        {folderVisible ? buildImageRows('folder') : null}
       </div>
       <BackToTopButton container={container}></BackToTopButton>
     </div>

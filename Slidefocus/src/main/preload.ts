@@ -24,8 +24,10 @@ const ConnectionHandler = {
     },
     once(channel: Channels, func: (...args: unknown[]) => void) {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
-    },
+    }, 
   },
+
+  
   //读取本地的图片
   readLocalImage: async () => {
     try {
@@ -47,17 +49,30 @@ const ConnectionHandler = {
       return null;
     }
   },
-  //最近看过的图片
-  readRecentImages: async () => {
+  
+  
+  //保存最近看过的图片
+  saveRecentImages: async (imagePath: any, liked: any, tags: any) => {
     try {
-      const recentImagePaths = await ipcRenderer.invoke('get-recent-image-paths');
-      const recentImages = await Promise.all(recentImagePaths.map(ConnectionHandler.readLocalImage));
-      return recentImages;
+      // 向主进程发送保存点击图片信息的请求
+      const updatedClickedImagePaths = await ipcRenderer.invoke('save-clicked-image', imagePath, liked, tags);
+      return updatedClickedImagePaths;
     } catch (error) {
-      console.error('读取最近看过的图片时发生错误:', error);
+      console.error('Error saving or reading clicked image:', error);
       return [];
     }
   },
+
+  readRecentImages: async () => {
+    try {
+      const recentImages = await ipcRenderer.invoke('get-recent-image-paths');
+      return recentImages;
+    } catch (error) {
+      console.error('读取收藏夹中的照片时发生错误:', error);
+      return [];
+    }
+  },
+
   //读取文件夹中的图片
   readLocalFolder: async () => {
     try {
@@ -86,6 +101,8 @@ const ConnectionHandler = {
       return [];
     }
   },
+
+  
 };
 
 contextBridge.exposeInMainWorld('connectionAPIs', ConnectionHandler);

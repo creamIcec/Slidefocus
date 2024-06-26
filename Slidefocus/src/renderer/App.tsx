@@ -12,7 +12,7 @@ import ToolBar from './components/ToolBar';
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
   const [imagePath, setImagePath] = useState<string>('');
-  const [imagePaths, setImagePaths] = useState<string[]>([]); //文件夹中的所有图片
+  const [folderImagePaths, setImagePaths] = useState<string[]>([]); //文件夹中的所有图片
   const [imageIndex, setImageIndex] = useState<number>(0);
 
   const switchViewer = (imageIndex: number) => {
@@ -30,14 +30,15 @@ function AppContainer() {
     <div className="app-grid-layout">
       <ToolBar></ToolBar>
       <ImageStream
-        imagePaths={imagePaths}
+        likedImagePaths={[]}
+        folderImagePaths={folderImagePaths}
         ShowViewerFunction={switchViewer}
       ></ImageStream>
       <TitleBar></TitleBar>
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
-          imagePaths={imagePaths}
+          imagePaths={folderImagePaths}
           imageIndex={imageIndex}
           closeImageViewFunction={() => setIsViewerPresent(false)}
         ></FullScreenImageView>
