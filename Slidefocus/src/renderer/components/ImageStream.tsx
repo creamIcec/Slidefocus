@@ -92,68 +92,76 @@ export default function ImageStream({
 
         const displayWidth = FIXED_HEIGHT * ratio;
 
-        if (displayWidth <= remainingWidth!) {
-          if (!rowContainer1) {
-            rowContainer1 = [];
-          }
-          rowContainer1.push(
-            <div style={{ width: displayWidth, height: FIXED_HEIGHT }}>
-              <img src={imagePaths[i]}></img>
-            </div>,
-          );
-          remainingWidth! -= displayWidth;
-          processed++;
+      if (
+        displayWidth <= remainingWidth! &&
+        remainingWidth! > MIN_DISPLAY_WIDTH
+      ) {
+        if (!rowContainer1) {
+          rowContainer1 = [];
+        }
+        rowContainer1.push(
+          <img
+            src={imageTempContainer[i].src}
+            style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
+            className="transition hover:scale-110 hover:shadow-2xl"
+            loading="lazy"
+          />,
+        );
+        remainingWidth! -= displayWidth;
+        restoreWidth = displayWidth;
+      } else {
+        if (!rowContainer1) {
+          rowContainer1 = [];
         } else {
-          if (!rowContainer1) {
-            rowContainer1 = [];
-          } else {
-            rowContainer1.pop();
-          }
-          rowContainer1.push(
-            <div
-              style={{
-                width: remainingWidth,
-                height: FIXED_HEIGHT,
-                overflow: 'hidden',
-              }}
-            >
-              <img src={imagePaths[i - 1]}></img>
-            </div>,
-          );
-          _streamContainer.push(rowContainer1);
-          rowContainer1 = null;
+          rowContainer1.pop();
+        }
+        rowContainer1.push(
+          <img
+            src={imageTempContainer[i - 1].src}
+            style={{
+              width: remainingWidth! + restoreWidth,
+              height: FOLLOW_WINDOW_HEIGHT,
+              objectFit: 'cover',
+            }}
+            className="transition hover:scale-110 hover:shadow-2xl"
+            loading="lazy"
+          ></img>,
+        );
+        restoreWidth = 0;
+        _streamContainer.push(rowContainer1);
+        rowContainer1 = null;
 
           remainingWidth = container.current?.clientWidth; //重置容器宽度
 
-          rowContainer2 = [];
-          if (displayWidth > remainingWidth!) {
-            rowContainer2.push(
-              <div
-                style={{
-                  height: FIXED_HEIGHT,
-                  overflow: 'hidden',
-                }}
-              >
-                <img src={imagePaths[i]}></img>
-              </div>,
-            );
-          } else {
-            rowContainer2.push(
-              <div style={{ width: displayWidth, height: FIXED_HEIGHT }}>
-                <img src={imagePaths[i]}></img>
-              </div>,
-            );
-          }
-
-          rowContainer1 = rowContainer2;
+        rowContainer2 = [];
+        if (displayWidth > remainingWidth!) {
+          rowContainer2.push(
+            <img
+              src={imageTempContainer[i].src}
+              style={{ width: remainingWidth, height: FOLLOW_WINDOW_HEIGHT }}
+              className="transition hover:scale-110 hover:shadow-2xl"
+              loading="lazy"
+            ></img>,
+          );
+          remainingWidth = 0;
+        } else {
+          rowContainer2.push(
+            <img
+              src={imageTempContainer[i].src}
+              style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
+              className="transition hover:scale-110 hover:shadow-2xl"
+              loading="lazy"
+            ></img>,
+          );
+          remainingWidth! -= displayWidth;
         }
-        if (processed == imagePaths.length) {
-          _streamContainer.push(rowContainer1!);
-        }
-        setStreamContainer(_streamContainer);
-      };
-
-      image.src = imagePaths[i];
+        rowContainer1 = rowContainer2;
+      }
+      processed++;
+      if (processed == imageTempContainer.length) {
+        _streamContainer.push(rowContainer1!);
+      }
+      setStreamContainer(_streamContainer);
     }
   };
 
