@@ -1,6 +1,7 @@
-import { ReactNode, useEffect, useRef, useState } from 'react';
-import ExpandButton from './ExpandButton';
+import { useEffect, useRef, useState } from 'react';
+import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
+import ExpandPanelTitle from './ExpandPanelTitle';
 
 /*
   1. 读取下一张图片
@@ -9,48 +10,6 @@ import BackToTopButton from './Back2top';
   4. 转移到第二行，将上一行的最后一张宽度占满，如果宽度大于第二行行宽，则裁剪到行宽并放入，如果小于则放入；回到第1步
 */
 
-type Range = {
-  start: number;
-  end: number;
-};
-
-function showImageViewer() {}
-
-function getRandomHeightPlaceHolder(
-  range: Range,
-  ShowViewerFunction: Function,
-) {
-  range.end = Math.max(range.end, 0);
-  range.start = Math.max(range.start, 0);
-
-  if (range.end < range.start) {
-    let temp = range.end;
-    range.end = range.start;
-    range.start = temp;
-  }
-  const height = Math.floor(
-    Math.random() * (range.end - range.start) + range.start,
-  );
-
-  return (
-    <div
-      className={'w-full bg-slate-500'}
-      style={{ height }}
-      onClick={() => ShowViewerFunction('')}
-    ></div>
-  );
-}
-
-function getColumnPlaceHolders(columns: number, ShowViewerFunction: Function) {
-  const result = [];
-  for (let i = 0; i < columns; i++) {
-    result.push(
-      getRandomHeightPlaceHolder({ start: 128, end: 512 }, ShowViewerFunction),
-    );
-  }
-  return result;
-}
-
 export default function ImageStream({
   imagePaths,
   ShowViewerFunction,
@@ -58,39 +17,77 @@ export default function ImageStream({
   imagePaths: string[] | null;
   ShowViewerFunction: Function;
 }) {
-  const FIXED_HEIGHT = 300;
+  let FOLLOW_WINDOW_HEIGHT = 300;
+  const MIN_DISPLAY_WIDTH = 300;
 
   const [recentVisible, setRecentVisible] = useState<boolean>(true);
   const [likedVisible, setLikedVisible] = useState<boolean>(false);
   const [folderVisible, setFolderVisible] = useState<boolean>(false);
   const [streamContainer, setStreamContainer] = useState<any[][]>([]);
+  const [imageCache, setImageCache] = useState<HTMLImageElement[]>([]);
+  const [imagePathArray, setImagePathArray] = useState<string[] | null>(
+    imagePaths,
+  );
+
+  const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
   useEffect(() => {
-    buildImageStream();
+    initImages(false);
+  }, [windowSize.height]);
+
+  useEffect(() => {
+    initImages(true);
   }, [imagePaths]);
 
   useEffect(() => {
     console.log('streamContainer: ' + streamContainer);
   }, [streamContainer]);
 
-  const buildImageStream = () => {
+  const sortImages = (imageArray: HTMLImageElement[]) => {
+    imageArray.sort((item1, item2) => {
+      return item1.src.localeCompare(item2.src, 'zh-CN');
+    });
+  };
+
+  const initImages = (shouldbuildPath: boolean) => {
     if (!imagePaths) {
       return;
     }
+    let initedCount = 0;
+    const imageTempContainer: HTMLImageElement[] = [];
+    if (shouldbuildPath) {
+      for (let i = 0; i < imagePaths?.length; i++) {
+        const image = new Image();
+        image.onload = function () {
+          initedCount++;
+          imageTempContainer.push(image);
+          if (initedCount == imagePaths?.length) {
+            setImageCache(imageTempContainer);
+            sortImages(imageTempContainer);
+            buildImageStream(imageTempContainer);
+          }
+        };
+        image.src = imagePaths[i];
+      }
+    } else {
+      console.log('窗口缩放重建');
+      buildImageStream(imageCache);
+    }
+  };
+
+  const buildImageStream = (imageTempContainer: HTMLImageElement[]) => {
     const _streamContainer: any[][] = []; //大的容器
-    let rowContainer1: any[] | null; //前一行的容器
-    let rowContainer2: any[] | null; //后一行的容器
-    let remainingWidth = container.current?.clientWidth; //剩余宽度
+    let rowContainer1: any[] | null = null; //前一行的容器
+    let rowContainer2: any[] | null = null; //后一行的容器
+    let remainingWidth = container.current?.offsetWidth; //剩余宽度
     let processed = 0;
-    for (let i = 0; i < imagePaths?.length; i++) {
-      const image = new Image();
-      image.onload = function () {
-        const width = image.width;
-        const height = image.height;
+    let restoreWidth = 0; //保存上一个的宽度， 用于恢复
+    for (let i = 0; i < imageTempContainer.length; i++) {
+      const width = imageTempContainer[i].width;
+      const height = imageTempContainer[i].height;
 
-        const ratio = width / height; //长宽比
-
-        const displayWidth = FIXED_HEIGHT * ratio;
+      const ratio = width / height; //长宽比
+      const displayWidth = FOLLOW_WINDOW_HEIGHT * ratio;
 
       if (
         displayWidth <= remainingWidth! &&
@@ -104,7 +101,6 @@ export default function ImageStream({
             src={imageTempContainer[i].src}
             style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
             className="transition hover:scale-110 hover:shadow-2xl"
-            loading="lazy"
           />,
         );
         remainingWidth! -= displayWidth;
@@ -124,14 +120,13 @@ export default function ImageStream({
               objectFit: 'cover',
             }}
             className="transition hover:scale-110 hover:shadow-2xl"
-            loading="lazy"
           ></img>,
         );
         restoreWidth = 0;
         _streamContainer.push(rowContainer1);
         rowContainer1 = null;
 
-          remainingWidth = container.current?.clientWidth; //重置容器宽度
+        remainingWidth = container.current?.clientWidth; //重置容器宽度
 
         rowContainer2 = [];
         if (displayWidth > remainingWidth!) {
@@ -140,7 +135,6 @@ export default function ImageStream({
               src={imageTempContainer[i].src}
               style={{ width: remainingWidth, height: FOLLOW_WINDOW_HEIGHT }}
               className="transition hover:scale-110 hover:shadow-2xl"
-              loading="lazy"
             ></img>,
           );
           remainingWidth = 0;
@@ -150,7 +144,6 @@ export default function ImageStream({
               src={imageTempContainer[i].src}
               style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
               className="transition hover:scale-110 hover:shadow-2xl"
-              loading="lazy"
             ></img>,
           );
           remainingWidth! -= displayWidth;
@@ -169,7 +162,12 @@ export default function ImageStream({
     const result = [];
     for (let i = 0; i < streamContainer!.length; i++) {
       result.push(
-        <div className="stream-row-container">{streamContainer![i]}</div>,
+        <div
+          className="stream-row-container"
+          style={{ height: FOLLOW_WINDOW_HEIGHT }}
+        >
+          {streamContainer![i]}
+        </div>,
       );
     }
     return result;
@@ -191,30 +189,24 @@ export default function ImageStream({
 
   return (
     <div className="app-stream-grid app-stream px-5" ref={container}>
-      <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
-        <ExpandButton expandFunction={switchRecent}></ExpandButton>
-        <span className="text-xl text-black dark:text-white font-hanserifb">
-          最近看过
-        </span>
-      </div>
+      <ExpandPanelTitle
+        expandFunction={switchRecent}
+        title="最近看过"
+      ></ExpandPanelTitle>
       <div className="stream-container p-5">
         {/*recentVisible ? imagesRows : null*/}
       </div>
-      <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
-        <ExpandButton expandFunction={switchLiked}></ExpandButton>
-        <span className="text-xl text-black dark:text-white font-hanserifb">
-          喜欢的图片
-        </span>
-      </div>
+      <ExpandPanelTitle
+        expandFunction={switchLiked}
+        title="喜欢的图片"
+      ></ExpandPanelTitle>
       <div className="stream-container p-5">
         {/*likedVisible ? imagesRows : null*/}
       </div>
-      <div className="flex flex-nowrap flex-row place-content-start place-items-center px-5">
-        <ExpandButton expandFunction={switchFolder}></ExpandButton>
-        <span className="text-xl text-black dark:text-white font-hanserifb">
-          "打开的文件夹路径"
-        </span>
-      </div>
+      <ExpandPanelTitle
+        expandFunction={switchFolder}
+        title="打开的文件夹路径"
+      ></ExpandPanelTitle>
       <div className="stream-container p-5">
         {folderVisible ? buildImageRows() : null}
       </div>
