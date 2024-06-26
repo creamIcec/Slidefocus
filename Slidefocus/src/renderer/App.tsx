@@ -1,15 +1,13 @@
-import { MemoryRouter as Router, Routes, Route } from 'react-router-dom';
-import './App.css';
+import { useEffect, useState } from 'react';
+import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import 'tailwindcss/tailwind.css';
-import TitleBar from './components/TitleBar';
+import './App.css';
+import FullScreenImageView from './components/FullScreenImageView';
+import ImageOpenButton from './components/ImageOpenButton';
 import ImageStream from './components/ImageStream';
 import SideBar from './components/SideBar';
+import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
-import FullScreenImageView from './components/FullScreenImageView';
-import { useEffect, useRef, useState } from 'react';
-import BackToTopButton from './components/Back2top';
-import OpenFileButton from './components/OpenFileButton';
-import OpenFolderButton from './components/OpenFolderButton';
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
@@ -42,8 +40,7 @@ function AppContainer() {
         ></FullScreenImageView>
       ) : null}
 
-      <OpenFolderButton setImagePaths={setImagePaths}></OpenFolderButton>
-      <OpenFileButton setPath={setImagePath}></OpenFileButton>
+      <ImageOpenButton setPath={setImagePath} setImagePaths={setImagePaths} />
     </div>
   );
 }

@@ -1,16 +1,8 @@
-export default function ExpandButton({
-  expandFunction,
-}: {
-  expandFunction: Function;
-}) {
-  const switchExpand = () => {
-    expandFunction();
-  };
-
+export default function ExpandButton({ expanded }: { expanded: boolean }) {
   return (
-    <button onClick={() => switchExpand()}>
+    <button>
       <i className="material-symbols-outlined text-3xl text-black dark:text-white">
-        arrow_right
+        {expanded ? 'arrow_drop_down' : 'arrow_right'}
       </i>
     </button>
   );
