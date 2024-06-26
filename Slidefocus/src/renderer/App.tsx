@@ -12,10 +12,12 @@ import ToolBar from './components/ToolBar';
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
   const [imagePath, setImagePath] = useState<string>('');
+  const [imagePaths, setImagePaths] = useState<string[]>([]); //文件夹中的所有图片
+  const [imageIndex, setImageIndex] = useState<number>(0);
 
-  const [imagePaths, setImagePaths] = useState<string[] | null>(null);
-  const switchViewer = (imageData: string) => {
+  const switchViewer = (imageIndex: number) => {
     setIsViewerPresent(!isViewerPresent);
+    setImageIndex(imageIndex);
   };
 
   useEffect(() => {
@@ -35,7 +37,8 @@ function AppContainer() {
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
-          imageData={imagePath}
+          imagePaths={imagePaths}
+          imageIndex={imageIndex}
           closeImageViewFunction={() => setIsViewerPresent(false)}
         ></FullScreenImageView>
       ) : null}

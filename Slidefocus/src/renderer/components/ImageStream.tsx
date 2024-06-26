@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
 import ExpandPanelTitle from './ExpandPanelTitle';
+import { TransformWrapper, TransformComponent } from 'react-zoom-pan-pinch';
 
 /*
   1. 读取下一张图片
@@ -25,9 +26,6 @@ export default function ImageStream({
   const [folderVisible, setFolderVisible] = useState<boolean>(false);
   const [streamContainer, setStreamContainer] = useState<any[][]>([]);
   const [imageCache, setImageCache] = useState<HTMLImageElement[]>([]);
-  const [imagePathArray, setImagePathArray] = useState<string[] | null>(
-    imagePaths,
-  );
 
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
@@ -43,8 +41,8 @@ export default function ImageStream({
     console.log('streamContainer: ' + streamContainer);
   }, [streamContainer]);
 
-  const sortImages = (imageArray: HTMLImageElement[]) => {
-    imageArray.sort((item1, item2) => {
+  const sortImages = (imagesArray: HTMLImageElement[]) => {
+    imagesArray.sort((item1, item2) => {
       return item1.src.localeCompare(item2.src, 'zh-CN');
     });
   };
@@ -101,6 +99,9 @@ export default function ImageStream({
             src={imageTempContainer[i].src}
             style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
             className="transition hover:scale-110 hover:shadow-2xl"
+            onClick={() => {
+              ShowViewerFunction(i);
+            }}
           />,
         );
         remainingWidth! -= displayWidth;
@@ -112,15 +113,20 @@ export default function ImageStream({
           rowContainer1.pop();
         }
         rowContainer1.push(
-          <img
-            src={imageTempContainer[i - 1].src}
-            style={{
-              width: remainingWidth! + restoreWidth,
-              height: FOLLOW_WINDOW_HEIGHT,
-              objectFit: 'cover',
-            }}
-            className="transition hover:scale-110 hover:shadow-2xl"
-          ></img>,
+          <div>
+            <img
+              src={imageTempContainer[i - 1].src}
+              style={{
+                width: remainingWidth! + restoreWidth,
+                height: FOLLOW_WINDOW_HEIGHT,
+                objectFit: 'cover',
+              }}
+              className="transition hover:scale-110 hover:shadow-2xl"
+              onClick={() => {
+                ShowViewerFunction(i - 1);
+              }}
+            />
+          </div>,
         );
         restoreWidth = 0;
         _streamContainer.push(rowContainer1);
@@ -133,9 +139,15 @@ export default function ImageStream({
           rowContainer2.push(
             <img
               src={imageTempContainer[i].src}
-              style={{ width: remainingWidth, height: FOLLOW_WINDOW_HEIGHT }}
+              style={{
+                width: remainingWidth,
+                height: FOLLOW_WINDOW_HEIGHT,
+              }}
               className="transition hover:scale-110 hover:shadow-2xl"
-            ></img>,
+              onClick={() => {
+                ShowViewerFunction(i);
+              }}
+            />,
           );
           remainingWidth = 0;
         } else {
@@ -144,7 +156,10 @@ export default function ImageStream({
               src={imageTempContainer[i].src}
               style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
               className="transition hover:scale-110 hover:shadow-2xl"
-            ></img>,
+              onClick={() => {
+                ShowViewerFunction(i);
+              }}
+            />,
           );
           remainingWidth! -= displayWidth;
         }

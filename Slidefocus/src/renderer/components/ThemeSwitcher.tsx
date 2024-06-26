@@ -23,7 +23,7 @@ const ThemeSwitcher = () => {
       onClick={() => switchDarkMode()}
     >
       <i className="material-symbols-outlined text-3xl text-black dark:text-white">
-        dark_mode
+        {isDark ? 'dark_mode' : 'light_mode'}
       </i>
     </button>
   );

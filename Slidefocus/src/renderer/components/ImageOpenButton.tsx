@@ -14,6 +14,12 @@ export default function ImageOpenButton({
     }
   };
 
+  const sortImages = (srcArray: string[]) => {
+    srcArray.sort((item1, item2) => {
+      return item1.localeCompare(item2, 'zh-CN');
+    });
+  };
+
   const handleOpenFolder = async () => {
     try {
       const imagePaths: string[] | null =
@@ -21,6 +27,7 @@ export default function ImageOpenButton({
       if (imagePaths !== null) {
         const appPrefixedPaths = imagePaths.map((path) => 'app://' + path);
         console.log(appPrefixedPaths);
+        sortImages(appPrefixedPaths);
         setImagePaths(appPrefixedPaths);
       } else {
         setImagePaths(null);

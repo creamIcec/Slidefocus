@@ -2,12 +2,16 @@ import FullScreenButton from './FullScreenButton';
 import LikeButton from './LikeButton';
 
 export default function FullScreenImageView({
-  imageData,
+  imagePaths,
+  imageIndex,
   closeImageViewFunction,
 }: {
-  imageData: string | undefined;
+  imagePaths: string[];
+  imageIndex: number;
   closeImageViewFunction: Function;
 }) {
+  console.log(imageIndex);
+  console.log(imagePaths[imageIndex]);
   return (
     <div className="w-full h-full fixed top-0 left-0 bg-yellow-300/40 backdrop-blur-sm">
       <div className="fullscreen-grid-layout pointer-events-auto">
@@ -31,8 +35,11 @@ export default function FullScreenImageView({
             onClickFunction={null}
           ></FullScreenButton>
         </div>
-        <div className="fullscreen-image-grid bg-slate-500">
-          <img src={imageData} />
+        <div className="fullscreen-image-grid">
+          <img
+            src={imagePaths[imageIndex]}
+            style={{ width: '100%', height: '100%', objectFit: 'contain' }}
+          />
         </div>
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-nextarrow-grid">
           <FullScreenButton
