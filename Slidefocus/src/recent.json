@@ -1,0 +1,37 @@
+[
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  },
+  {
+    "path": "<路径>",
+    "liked": "true/false",
+    "tag": "<标签>"
+  }
+]
