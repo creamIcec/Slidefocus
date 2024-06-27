@@ -1,8 +1,13 @@
 import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import ExpandPanelTitle from './ExpandPanelTitle';
-import { ImagePathsType } from '../App';
+import { ImagePathsType, ImageRawRecord } from '../App';
 import LikeButton from './LikeButton';
+import {
+  SortType,
+  sortImageElemets as sortImageElements,
+  sortImages,
+} from '../utils/sort';
 
 /*
   1. 读取下一张图片
@@ -12,15 +17,17 @@ import LikeButton from './LikeButton';
 */
 
 export default function ImageStream({
-  imagePaths,
+  images,
   ClickCallback,
   type,
   title,
+  sortMethod,
 }: {
-  imagePaths: string[] | null;
+  images: ImageRawRecord[] | null;
   ClickCallback: Function;
   type: ImagePathsType;
   title: string;
+  sortMethod: SortType;
 }) {
   let FOLLOW_WINDOW_HEIGHT = 300;
   const MIN_DISPLAY_WIDTH = 300;
@@ -32,24 +39,25 @@ export default function ImageStream({
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
   const initImages = (shouldbuildPath: boolean) => {
-    if (!imagePaths) {
+    if (!images) {
       return;
     }
     let initedCount = 0;
     const imageTempContainer: HTMLImageElement[] = [];
     if (shouldbuildPath) {
-      for (let i = 0; i < imagePaths?.length; i++) {
+      for (let i = 0; i < images?.length; i++) {
         const image = new Image();
         image.onload = function () {
           initedCount++;
           imageTempContainer.push(image);
-          if (initedCount == imagePaths?.length) {
+          if (initedCount == images?.length) {
             setImageCache(imageTempContainer);
-            sortImages(imageTempContainer);
+            sortImageElements(imageTempContainer, sortMethod);
             buildImageStream(type, imageTempContainer);
           }
         };
-        image.src = imagePaths[i];
+        image.src = images[i].path;
+        image.setAttribute('liked', images[i].liked ? 'true' : 'false');
       }
     } else {
       buildImageStream(type, imageCache);
@@ -62,17 +70,11 @@ export default function ImageStream({
 
   useEffect(() => {
     initImages(true);
-  }, [imagePaths]);
+  }, [images]);
 
   useEffect(() => {
     console.log('streamContainer: ' + streamContainer);
   }, [streamContainer]);
-
-  const sortImages = (imagesArray: HTMLImageElement[]) => {
-    imagesArray.sort((item1, item2) => {
-      return item1.src.localeCompare(item2.src, 'zh-CN');
-    });
-  };
 
   const initAllImages = () => {
     initImages(false);

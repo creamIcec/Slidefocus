@@ -1,6 +1,10 @@
 import TitleBarButton from './TitleBarButton';
 
-export default function TitleBar() {
+export default function TitleBar({
+  onSearchCallback,
+}: {
+  onSearchCallback: Function;
+}) {
   return (
     <div className="app-titlebar-grid bg-primary dark:bg-primary_dark  app-titlebar shadow-md">
       <div className="h-full flex flex-row gap-2 place-items-center p-5">
@@ -12,6 +16,12 @@ export default function TitleBar() {
             search
           </i>
           <input
+            onKeyUp={(e) => {
+              if (e.key == 'Enter') {
+                console.log('enter');
+                onSearchCallback((e.target as HTMLInputElement).value);
+              }
+            }}
             placeholder="搜索图片名称..."
             className="w-96 h-8 p-2 font-normal mx-10 text-base rounded-2xl no-drag bg-bg dark:bg-bg_dark outline-none text-black dark:text-white"
           />

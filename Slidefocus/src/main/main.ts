@@ -28,6 +28,7 @@ import fs from 'fs';
 import util from 'util';
 
 import Protocol, { requestHandler } from './app/protocol';
+import { ImageRawRecord } from '../renderer/App';
 
 class AppUpdater {
   constructor() {
@@ -208,9 +209,12 @@ const setUpChannels = () => {
       return null;
     }
   });
-  ipcMain.handle('read-folder-images', async (event, filePaths) => {
+  ipcMain.handle('read-folder-images', async (event, filePaths: string[]) => {
     try {
-      return filePaths;
+      const imageRawRecords: ImageRawRecord[] = filePaths.map((filePath) => {
+        return { path: filePath, liked: false, tags: '', lastModified: '' };
+      });
+      return imageRawRecords;
     } catch (error) {
       console.error('读取本地图片错误:', error);
       return null;
