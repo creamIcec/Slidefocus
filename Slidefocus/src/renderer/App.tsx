@@ -12,7 +12,7 @@ import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
 import BackToTopButton from './components/Back2top';
-import { sortImages } from './utils/sort';
+import { SortType, sortImages } from './utils/sort';
 import MessagePopup from './components/MessagePopup';
 import ImageStream from './components/ImageStream';
 
@@ -37,6 +37,7 @@ function AppContainer() {
   const [folderImages, setFolderImages] = useState<ImageRawRecord[]>([]); //文件夹中的所有图片
   const [recentImages, setRecentImages] = useState<ImageRawRecord[]>([]); //最近的所有图片
   const [likedImages, setLikedImages] = useState<ImageRawRecord[]>([]); //喜欢的所有图片
+  const [imageSortMethod, setImageSortMethod] = useState<SortType>('path');
   const [currentFullView, setCurrentFullView] = useState<CurrentImageViewModel>(
     { streamType: 'folder', index: 0 },
   );
@@ -206,6 +207,11 @@ function AppContainer() {
     };
   }
 
+  function _setSortMethod(sortMethod: SortType) {
+    console.log('当前排序方式:' + sortMethod);
+    setImageSortMethod(sortMethod);
+  }
+
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -221,28 +227,28 @@ function AppContainer() {
 
   return (
     <div className="app-grid-layout">
-      <ToolBar></ToolBar>
+      <ToolBar setSortMethod={_setSortMethod}></ToolBar>
       <div className="app-stream-grid app-stream px-5" ref={container}>
         <ImageStream
           images={recentImages}
           type="recent"
           ClickCallback={recentClickCallback}
           title="最近看过"
-          sortMethod="path"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
           images={likedImages}
           type="liked"
           ClickCallback={likedClickCallback}
           title="喜欢的图片"
-          sortMethod="path"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
           images={folderImages}
           type="folder"
           ClickCallback={folderClickCallback}
           title="打开的文件夹路径"
-          sortMethod="path"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <BackToTopButton container={container}></BackToTopButton>
       </div>

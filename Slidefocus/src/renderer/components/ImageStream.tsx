@@ -65,6 +65,10 @@ export default function ImageStream({
   };
 
   useEffect(() => {
+    initImages(true);
+  }, [sortMethod]);
+
+  useEffect(() => {
     initAllImages();
   }, [windowSize.height]);
 
