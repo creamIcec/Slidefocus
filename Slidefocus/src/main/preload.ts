@@ -85,7 +85,7 @@ const ConnectionHandler = {
   },
   saveLikedImages: async (imagePath: any, liked: any, tags: any) => {
     try {
-      // 向主进程发送保存点击图片信息的请求
+      // 向主进程发送保存喜欢图片信息的请求
       const updatedLikedImagePaths = await ipcRenderer.invoke(
         'save-liked-image',
         imagePath,
