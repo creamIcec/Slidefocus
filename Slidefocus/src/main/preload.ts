@@ -1,7 +1,8 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { contextBridge, ipcRenderer, IpcRendererEvent, app } from 'electron';
 import { ImageRawRecord } from '../renderer/App';
+import { APP_PROTOCOL, FILE_PROTOCOL } from '../renderer/constants';
 
 export type Channels =
   | 'ipc-example'
@@ -39,8 +40,11 @@ const ConnectionHandler = {
       });
 
       if (filePaths.length > 0) {
-        console.log(filePaths);
-        return filePaths[0];
+        const image = await ipcRenderer.invoke(
+          'read-local-image',
+          filePaths[0],
+        );
+        return image;
       } else {
         return null;
       }
@@ -98,7 +102,6 @@ const ConnectionHandler = {
       return [];
     }
   },
-
   //读取文件夹中的图片
   readLocalFolder: async () => {
     try {
@@ -112,6 +115,10 @@ const ConnectionHandler = {
           'read-folder-images',
           folderPaths,
         );
+
+        console.log('文件夹images');
+        console.log(images);
+
         return images;
       } else {
         return [];
@@ -120,6 +127,9 @@ const ConnectionHandler = {
       console.error('读取错误:', error);
       return null;
     }
+  },
+  getAppIsPackaged: () => {
+    return app.isPackaged;
   },
 };
 

@@ -20,6 +20,7 @@ import { resolveHtmlPath } from './util';
 
 import { ImageRawRecord } from '../renderer/App';
 import Protocol from './app/protocol';
+import { APP_PROTOCOL, FILE_PROTOCOL } from '../renderer/constants';
 
 class AppUpdater {
   constructor() {
@@ -56,12 +57,14 @@ const likedImages: ImageRawRecord[] = [];
 //定义最近浏览的最大保存图片数量
 const MAX_QUEUE_LENGTH = 10;
 //保存图片路径的json文件
-const clickedImagePathsFilePath = path.join(
+/*const clickedImagePathsFilePath = path.join(
   __dirname,
   'clicked-image-paths.json',
-);
+);*/
+const clickedImagePathsFilePath = './clicked-images-paths.json';
+const likedImagePathsFilePath = './liked-image-paths.json';
 //保存喜欢的图片路径的json文件
-const likedImagePathsFilePath = path.join(__dirname, 'liked-image-paths.json');
+/*const likedImagePathsFilePath = path.join(__dirname, 'liked-image-paths.json');*/
 //保存浏览过的图片路径
 /*ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
   // 检查 clickedImagePaths 是否已经存在该图片的记录
@@ -121,10 +124,6 @@ const installExtensions = async () => {
 const createWindow = async () => {
   if (isDebug) {
     await installExtensions();
-  }
-
-  if (!isDebug) {
-    protocol.registerBufferProtocol(Protocol.scheme, Protocol.requestHandler);
   }
 
   const RESOURCES_PATH = app.isPackaged
@@ -215,7 +214,15 @@ const setUpChannels = () => {
   });
   ipcMain.handle('read-local-image', async (event, filePath) => {
     try {
-      return readImage(filePath);
+      const image: ImageRawRecord = {
+        path: app.isPackaged
+          ? FILE_PROTOCOL + filePath
+          : APP_PROTOCOL + filePath,
+        liked: false,
+        tags: '',
+        lastModified: '',
+      };
+      return image;
     } catch (error) {
       console.error('读取本地图片错误:', error);
       return null;
@@ -223,9 +230,18 @@ const setUpChannels = () => {
   });
   ipcMain.handle('read-folder-images', async (event, filePaths: string[]) => {
     try {
-      const imageRawRecords: ImageRawRecord[] = filePaths.map((filePath) => {
-        return { path: filePath, liked: false, tags: '', lastModified: '' };
-      });
+      const imageRawRecords: ImageRawRecord[] = filePaths.map(
+        (filePath: any) => {
+          return {
+            path: app.isPackaged
+              ? (FILE_PROTOCOL + filePath).replaceAll('\\', '/')
+              : APP_PROTOCOL + filePath,
+            liked: false,
+            tags: '',
+            lastModified: '',
+          };
+        },
+      );
       return imageRawRecords;
     } catch (error) {
       console.error('读取本地图片错误:', error);
@@ -233,7 +249,6 @@ const setUpChannels = () => {
     }
   });
   ipcMain.handle('show-open-dialog-Folder', async (event, options) => {
-    const { dialog } = require('electron');
     const { canceled, filePaths } = await dialog.showOpenDialog({
       ...options,
       properties: ['openDirectory'],
@@ -390,16 +405,30 @@ const setUpProtocol = () => {
 
 //所有需要在应用启动的时候建立的事件监听
 const onStart = () => {
-  const data = fs.readFileSync(clickedImagePathsFilePath, {
-    encoding: 'utf-8',
+  fs.access(clickedImagePathsFilePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      const emptyJson = JSON.stringify([]);
+      fs.writeFileSync(clickedImagePathsFilePath, emptyJson);
+    } else {
+      const data = fs.readFileSync(clickedImagePathsFilePath, {
+        encoding: 'utf-8',
+      });
+      if (!data) {
+        return;
+      }
+      const clickedImageObjects = JSON.parse(data.toString());
+      for (let item of clickedImageObjects) {
+        clickedImages.push(item);
+      }
+    }
   });
-  if (!data) {
-    return;
-  }
-  const clickedImageObjects = JSON.parse(data.toString());
-  for (let item of clickedImageObjects) {
-    clickedImages.push(item);
-  }
+
+  fs.access(likedImagePathsFilePath, fs.constants.F_OK, (err) => {
+    if (err) {
+      const emptyJson = JSON.stringify([]);
+      fs.writeFileSync(likedImagePathsFilePath, emptyJson);
+    }
+  });
 };
 
 /**

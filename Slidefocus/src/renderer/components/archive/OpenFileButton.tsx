@@ -1,10 +1,10 @@
 import React, { useState } from 'react';
 
-const OpenFileButton = ({setPath} : {setPath: Function}) => {
+const OpenFileButton = ({ setPath }: { setPath: Function }) => {
   const handleOpenFile = async () => {
     try {
       const imagePath = await window.connectionAPIs.readLocalImage();
-      setPath("app://" + imagePath)
+      setPath(imagePath);
     } catch (error) {
       console.error('读取本地图像时出错:', error);
     }

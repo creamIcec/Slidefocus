@@ -11,7 +11,7 @@ export default function OpenButton({
   const handleOpenFile = async () => {
     try {
       const imagePath = await window.connectionAPIs.readLocalImage();
-      openSingleImageCallback('app://' + imagePath);
+      openSingleImageCallback(imagePath);
     } catch (error) {
       console.error('读取本地图像时出错:', error);
     }
@@ -22,17 +22,8 @@ export default function OpenButton({
       const images: ImageRawRecord[] | null =
         await window.connectionAPIs.readLocalFolder();
       if (images !== null) {
-        const appPrefixedImages = images.map((image) => {
-          return {
-            path: 'app://' + image.path,
-            lastModified: image.lastModified,
-            liked: image.liked,
-            tags: image.tags,
-          } as ImageRawRecord;
-        });
-        console.log(appPrefixedImages);
-        sortImages(appPrefixedImages, 'path');
-        setImages(appPrefixedImages);
+        sortImages(images, 'path');
+        setImages(images);
       } else {
         setImages(null);
       }

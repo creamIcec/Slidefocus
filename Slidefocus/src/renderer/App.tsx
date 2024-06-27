@@ -70,6 +70,7 @@ function AppContainer() {
   const likedCallback = (newLikedImages: ImageRawRecord[]) => {
     console.log('接收到的likedImages:');
     console.log(newLikedImages);
+    sortImages(newLikedImages, imageSortMethod);
     setLikedImages(newLikedImages);
   };
 
@@ -84,6 +85,7 @@ function AppContainer() {
     });
     console.log('new folder:');
     console.log(newFolderImages);
+    alert(newFolderImages.map((item) => item.liked));
     setFolderImages(newFolderImages);
   };
 
@@ -236,6 +238,7 @@ function AppContainer() {
 
   async function fetchLiked() {
     const likedImages = await window.connectionAPIs.readLikedImages();
+    sortImages(likedImages, 'path');
     setLikedImages(likedImages);
   }
 
@@ -250,7 +253,8 @@ function AppContainer() {
       updateCopyMessage('请尝试重新复制!');
       return;
     }
-    const systemPath = content.slice(6, content.length);
+    const isPackaged = window.connectionAPIs.getAppIsPackaged();
+    const systemPath = content.slice(isPackaged ? 8 : 6, content.length);
     navigator.clipboard.writeText(systemPath);
     updateCopyMessage('复制路径成功!');
   }
@@ -300,7 +304,7 @@ function AppContainer() {
   }, [currentImage]);
 
   useEffect(() => {
-    console.log('初次更新喜欢状态');
+    console.log('更新喜欢状态');
     console.log(likedImages);
     updateImageLikedState();
   }, [likedImages]);

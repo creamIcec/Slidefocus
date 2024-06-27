@@ -19,8 +19,8 @@ export default function FullScreenImageView({
   copyImageFunction: Function;
   likedCallback: Function;
 }) {
-  const onToggle = (path: string, liked: boolean, tags: string) => {
-    const newLikedImages = window.connectionAPIs.saveLikedImages(
+  const onToggle = async (path: string, liked: boolean, tags: string) => {
+    const newLikedImages = await window.connectionAPIs.saveLikedImages(
       path,
       liked,
       tags,

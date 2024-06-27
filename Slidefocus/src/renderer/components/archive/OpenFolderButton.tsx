@@ -1,13 +1,12 @@
 import React, { useState } from 'react';
 
-const OpenFolderButton = ({setImagePaths} : {setImagePaths: Function}) => {
+const OpenFolderButton = ({ setImagePaths }: { setImagePaths: Function }) => {
   const handleOpenFolder = async () => {
     try {
-      const imagePaths: string[] | null = await window.connectionAPIs.readLocalFolder();
+      const imagePaths: string[] | null =
+        await window.connectionAPIs.readLocalFolder();
       if (imagePaths !== null) {
-        const appPrefixedPaths = imagePaths.map((path) => "app://" + path);
-        console.log(appPrefixedPaths);
-        setImagePaths(appPrefixedPaths);
+        setImagePaths(imagePaths);
       } else {
         setImagePaths(null);
       }
