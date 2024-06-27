@@ -62,12 +62,18 @@ function AppContainer() {
   };
 
   const onSearch = (searchTerm: string) => {
-    const allImagePaths = folderImages.concat(recentImages).concat(likedImages);
-    const index = allImagePaths.map((item) => item.path).indexOf(searchTerm);
-    if (index) {
-      setCurrentFullView({ streamType: 'search', index: index });
-      setImagePath(allImagePaths[index].path);
-      handleImageClickForRecent(allImagePaths[index]);
+    const searchPattern = new RegExp(searchTerm, 'i');
+    const allImages = folderImages.concat(recentImages).concat(likedImages);
+    const found = allImages
+      .map((item) => item.path)
+      .findIndex((item) => item.search(searchPattern) != -1);
+    if (found != -1) {
+      setCurrentFullView({
+        streamType: 'search',
+        index: found,
+      });
+      setImagePath(allImages[found].path);
+      handleImageClickForRecent(allImages[found]);
       fetchRecent();
     }
   };

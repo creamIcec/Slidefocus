@@ -270,7 +270,7 @@ const setUpChannels = () => {
       // 如果图片信息已存在,且信息完全相同,则将其移动到最前面
       if (
         clickedImages[existingImageIndex].liked === image.liked &&
-        clickedImages[existingImageIndex].tags.join(',') === image.tags
+        clickedImages[existingImageIndex].tags === image.tags
       ) {
         clickedImages.splice(existingImageIndex, 1);
         clickedImages.unshift({

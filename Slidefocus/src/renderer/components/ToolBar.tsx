@@ -28,12 +28,6 @@ export default function ToolBar({
           </i>
         </button>
       </div>
-      <div className="flex flex-row gap-4 mx-4 place-items-center place-content-center">
-        <input type="checkbox" className="w-4 h-4 outline-none inline"></input>
-        <span className="font-hanserifb text-xl text-black dark:text-white">
-          优先喜欢的图片
-        </span>
-      </div>
     </div>
   );
 }
