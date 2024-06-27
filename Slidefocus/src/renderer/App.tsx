@@ -38,6 +38,7 @@ function AppContainer() {
   const [currentFullView, setCurrentFullView] = useState<CurrentImageViewModel>(
     { streamType: 'folder', index: 0 },
   );
+
   const [copyMessage, setCopyMessage] = useState<string>('');
   const [displayCopyMessage, setDisplayCopyMessage] = useState<boolean>(false);
 
