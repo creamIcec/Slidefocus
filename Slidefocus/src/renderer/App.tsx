@@ -2,19 +2,16 @@ import { useEffect, useRef, useState } from 'react';
 import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import 'tailwindcss/tailwind.css';
 import './App.css';
-import FolderStream from './components/archive/FolderStream';
+import BackToTopButton from './components/Back2top';
 import FullScreenImageView from './components/FullScreenImageView';
+import ImageStream from './components/ImageStream';
+import MessagePopup from './components/MessagePopup';
 import OpenButton from './components/OpenButton';
-import LikedStream from './components/archive/LikedStream';
-import RecentStream from './components/archive/RecentStream';
 import SideBar from './components/SideBar';
 import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
-import BackToTopButton from './components/Back2top';
 import { SortType, sortImages } from './utils/sort';
-import MessagePopup from './components/MessagePopup';
-import ImageStream from './components/ImageStream';
 
 export type ImagePathsType = 'liked' | 'folder' | 'recent' | 'search';
 
@@ -79,16 +76,19 @@ function AppContainer() {
   const likedClickCallback = async (index: number) => {
     try {
       // 获取当前点击的图片路径和其他相关信息
-      const imagePath = folderImagePaths[index];
-      const isLiked = likedImagePaths.includes(imagePath);
+      const imagePath = folderImages[index].path;
+      const isLiked = likedImages.map((item) => item.path).includes(imagePath);
       const tags: any[] = []; // 假设这里有图片的标签信息
 
       // 保存更新后的喜欢状态
-      const updatedLikedImagePaths =
-        await window.connectionAPIs.saveLikedImages(imagePath, !isLiked, tags);
+      const updatedLikedImages = await window.connectionAPIs.saveLikedImages(
+        imagePath,
+        !isLiked,
+        tags,
+      );
 
       // 更新组件状态
-      setLikedImagePaths(updatedLikedImagePaths);
+      setLikedImages(updatedLikedImages);
     } catch (error) {
       console.error('Error updating liked image:', error);
     }
