@@ -19,12 +19,14 @@ import {
 export default function ImageStream({
   images,
   ClickCallback,
+  LikedCallback,
   type,
   title,
   sortMethod,
 }: {
   images: ImageRawRecord[] | null;
   ClickCallback: Function;
+  LikedCallback: Function;
   type: ImagePathsType;
   title: string;
   sortMethod: SortType;
@@ -45,6 +47,10 @@ export default function ImageStream({
     let initedCount = 0;
     const imageTempContainer: HTMLImageElement[] = [];
     if (shouldbuildPath) {
+      if (images.length <= 0) {
+        setImageCache(imageTempContainer);
+        buildImageStream(imageTempContainer);
+      }
       for (let i = 0; i < images?.length; i++) {
         const image = new Image();
         image.onload = function () {
@@ -53,14 +59,14 @@ export default function ImageStream({
           if (initedCount == images?.length) {
             setImageCache(imageTempContainer);
             sortImageElements(imageTempContainer, sortMethod);
-            buildImageStream(type, imageTempContainer);
+            buildImageStream(imageTempContainer);
           }
         };
         image.src = images[i].path;
         image.setAttribute('liked', images[i].liked ? 'true' : 'false');
       }
     } else {
-      buildImageStream(type, imageCache);
+      buildImageStream(imageCache);
     }
   };
 
@@ -84,16 +90,31 @@ export default function ImageStream({
     initImages(false);
   };
 
-  const buildImageStream = (
-    type: ImagePathsType,
-    imageTempContainer: HTMLImageElement[],
-  ) => {
+  const onToggle = async (path: string, liked: boolean, tags: string) => {
+    const newLikedImages = await window.connectionAPIs.saveLikedImages(
+      path,
+      liked,
+      tags,
+    );
+    console.log('新的喜欢:');
+    console.log(newLikedImages);
+    LikedCallback(newLikedImages);
+  };
+
+  const buildImageStream = (imageTempContainer: HTMLImageElement[]) => {
+    console.log('container:');
+    console.log(imageTempContainer.map((item) => item.getAttribute('liked')));
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
     let remainingWidth = mainContainer.current?.offsetWidth; //剩余宽度
     let processed = 0;
     let restoreWidth = 0; //保存上一个的宽度， 用于恢复
+
+    if (imageTempContainer.length <= 0) {
+      setStreamContainer(_streamContainer);
+    }
+
     for (let i = 0; i < imageTempContainer.length; i++) {
       const width = imageTempContainer[i].width;
       const height = imageTempContainer[i].height;
@@ -118,7 +139,15 @@ export default function ImageStream({
               }}
             />
             <div className="absolute bottom-0 right-0 p-5">
-              <LikeButton></LikeButton>
+              <LikeButton
+                onToggle={onToggle}
+                imagePath={imageTempContainer[i].src}
+                liked={
+                  imageTempContainer[i].getAttribute('liked') === 'true'
+                    ? true
+                    : false
+                }
+              ></LikeButton>
             </div>
           </div>,
         );
@@ -144,7 +173,15 @@ export default function ImageStream({
               }}
             />
             <div className="absolute bottom-0 right-4 p-5">
-              <LikeButton></LikeButton>
+              <LikeButton
+                onToggle={onToggle}
+                imagePath={imageTempContainer[i - 1].src}
+                liked={
+                  imageTempContainer[i - 1].getAttribute('liked') === 'true'
+                    ? true
+                    : false
+                }
+              ></LikeButton>
             </div>
           </div>,
         );
@@ -169,7 +206,15 @@ export default function ImageStream({
                 }}
               />
               <div className="absolute bottom-0 right-0 p-5">
-                <LikeButton></LikeButton>
+                <LikeButton
+                  onToggle={onToggle}
+                  imagePath={imageTempContainer[i].src}
+                  liked={
+                    imageTempContainer[i].getAttribute('liked') === 'true'
+                      ? true
+                      : false
+                  }
+                ></LikeButton>
               </div>
             </div>,
           );
@@ -185,7 +230,15 @@ export default function ImageStream({
                 }}
               />
               <div className="absolute bottom-0 right-0 p-5">
-                <LikeButton></LikeButton>
+                <LikeButton
+                  onToggle={onToggle}
+                  imagePath={imageTempContainer[i].src}
+                  liked={
+                    imageTempContainer[i].getAttribute('liked') == 'true'
+                      ? true
+                      : false
+                  }
+                ></LikeButton>
               </div>
             </div>,
           );

@@ -76,7 +76,7 @@ const ConnectionHandler = {
   },
   readLikedImages: async () => {
     try {
-      const LikedImages = await ipcRenderer.invoke('get-Liked-image-paths');
+      const LikedImages = await ipcRenderer.invoke('get-liked-image-paths');
       return LikedImages;
     } catch (error) {
       console.error('读取收藏夹中的照片时发生错误:', error);
