@@ -2,6 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import ExpandPanelTitle from './ExpandPanelTitle';
 import { ImagePathsType } from '../App';
+import LikeButton from './LikeButton';
 
 /*
   1. 读取下一张图片
@@ -102,14 +103,18 @@ export default function ImageStream({
           rowContainer1 = [];
         }
         rowContainer1.push(
-          <img
-            src={imageTempContainer[i].src}
-            style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
-            className="transition hover:scale-110 hover:shadow-2xl"
-            onClick={() => {
-              ClickCallback(i);
-            }}
-          />,
+          <div className="relative transition hover:scale-110 hover:shadow-2xl hover:z-[1000]">
+            <img
+              src={imageTempContainer[i].src}
+              style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
+              onClick={() => {
+                ClickCallback(i);
+              }}
+            />
+            <div className="absolute bottom-0 right-0 p-5">
+              <LikeButton></LikeButton>
+            </div>
+          </div>,
         );
         remainingWidth! -= displayWidth;
         restoreWidth = displayWidth;
@@ -120,7 +125,7 @@ export default function ImageStream({
           rowContainer1.pop();
         }
         rowContainer1.push(
-          <div>
+          <div className="relative transition hover:scale-110 hover:shadow-2xl hover:z-[1000]">
             <img
               src={imageTempContainer[i - 1].src}
               style={{
@@ -128,11 +133,13 @@ export default function ImageStream({
                 height: FOLLOW_WINDOW_HEIGHT,
                 objectFit: 'cover',
               }}
-              className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
                 ClickCallback(i - 1);
               }}
             />
+            <div className="absolute bottom-0 right-4 p-5">
+              <LikeButton></LikeButton>
+            </div>
           </div>,
         );
         restoreWidth = 0;
@@ -144,29 +151,37 @@ export default function ImageStream({
         rowContainer2 = [];
         if (displayWidth > remainingWidth!) {
           rowContainer2.push(
-            <img
-              src={imageTempContainer[i].src}
-              style={{
-                width: remainingWidth,
-                height: FOLLOW_WINDOW_HEIGHT,
-              }}
-              className="transition hover:scale-110 hover:shadow-2xl"
-              onClick={() => {
-                ClickCallback(i);
-              }}
-            />,
+            <div className="relative transition hover:scale-110 hover:shadow-2xl hover:z-[1000]">
+              <img
+                src={imageTempContainer[i].src}
+                style={{
+                  width: remainingWidth,
+                  height: FOLLOW_WINDOW_HEIGHT,
+                }}
+                onClick={() => {
+                  ClickCallback(i);
+                }}
+              />
+              <div className="absolute bottom-0 right-0 p-5">
+                <LikeButton></LikeButton>
+              </div>
+            </div>,
           );
           remainingWidth = 0;
         } else {
           rowContainer2.push(
-            <img
-              src={imageTempContainer[i].src}
-              style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
-              className="transition hover:scale-110 hover:shadow-2xl"
-              onClick={() => {
-                ClickCallback(i);
-              }}
-            />,
+            <div className="relative transition hover:scale-110 hover:shadow-2xl hover:z-[1000]">
+              <img
+                src={imageTempContainer[i].src}
+                style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
+                onClick={() => {
+                  ClickCallback(i);
+                }}
+              />
+              <div className="absolute bottom-0 right-0 p-5">
+                <LikeButton></LikeButton>
+              </div>
+            </div>,
           );
           remainingWidth! -= displayWidth;
         }
@@ -205,7 +220,7 @@ export default function ImageStream({
   const mainContainer = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={mainContainer}>
+    <div ref={mainContainer} style={{ width: '100%' }}>
       <ExpandPanelTitle
         expandFunction={switchFolder}
         title={title}

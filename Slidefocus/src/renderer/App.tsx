@@ -44,10 +44,6 @@ function AppContainer() {
     return () => clearTimeout(timeout);
   }, [displayCopyMessage]);
 
-  const switchViewer = (imageIndex: number) => {
-    setIsViewerPresent(!isViewerPresent);
-  };
-
   const recentClickCallback = (index: number) => {
     setImagePath(recentImagePaths[index]);
     setCurrentFullView({ streamType: 'recent', index: index });
@@ -78,6 +74,7 @@ function AppContainer() {
     setImagePath(paths[newIndex]);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
+    return paths[newIndex];
   };
 
   const getFullViewLastIndex = (oldIndex: number, paths: string[]) => {
@@ -94,38 +91,42 @@ function AppContainer() {
 
   const fullViewNextImage = () => {
     const index = currentFullView.index;
+    let path;
     switch (currentFullView.streamType) {
       case 'folder': {
-        getFullViewNextIndex(index, folderImagePaths);
+        path = getFullViewNextIndex(index, folderImagePaths);
         break;
       }
       case 'recent': {
-        getFullViewNextIndex(index, recentImagePaths);
+        path = getFullViewNextIndex(index, recentImagePaths);
         break;
       }
       case 'liked': {
-        getFullViewNextIndex(index, likedImagePaths);
+        path = getFullViewNextIndex(index, likedImagePaths);
         break;
       }
     }
+    handleImageClickForRecent(path, false, '');
   };
 
   const fullViewLastImage = () => {
     const index = currentFullView.index;
+    let path;
     switch (currentFullView.streamType) {
       case 'folder': {
-        getFullViewLastIndex(index, folderImagePaths);
+        path = getFullViewLastIndex(index, folderImagePaths);
         break;
       }
       case 'recent': {
-        getFullViewLastIndex(index, recentImagePaths);
+        path = getFullViewLastIndex(index, recentImagePaths);
         break;
       }
       case 'liked': {
-        getFullViewLastIndex(index, likedImagePaths);
+        path = getFullViewLastIndex(index, likedImagePaths);
         break;
       }
     }
+    handleImageClickForRecent(path, false, '');
   };
 
   async function fetchRecent() {
