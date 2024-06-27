@@ -2,11 +2,11 @@ import { useEffect, useRef, useState } from 'react';
 import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import 'tailwindcss/tailwind.css';
 import './App.css';
-import FolderStream from './components/FolderStream';
+import FolderStream from './components/archive/FolderStream';
 import FullScreenImageView from './components/FullScreenImageView';
 import OpenButton from './components/OpenButton';
-import LikedStream from './components/LikedStream';
-import RecentStream from './components/RecentStream';
+import LikedStream from './components/archive/LikedStream';
+import RecentStream from './components/archive/RecentStream';
 import SideBar from './components/SideBar';
 import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
@@ -14,8 +14,9 @@ import { handleImageClickForRecent } from './utils/handleSaveImagesList';
 import BackToTopButton from './components/Back2top';
 import { sortImages } from './utils/sort';
 import MessagePopup from './components/MessagePopup';
+import ImageStream from './components/ImageStream';
 
-type ImagePathsType = 'liked' | 'folder' | 'recent';
+export type ImagePathsType = 'liked' | 'folder' | 'recent';
 
 type CurrentImageViewModel = {
   streamType: ImagePathsType;
@@ -58,6 +59,8 @@ function AppContainer() {
     handleImageClickForRecent(folderImagePaths[index], false, '');
     fetchRecent();
   };
+
+  const likedClickCallback = (index: number) => {};
 
   const openSingleImageCallback = (path: string) => {
     setImagePath(path);
@@ -194,24 +197,25 @@ function AppContainer() {
   return (
     <div className="app-grid-layout">
       <ToolBar></ToolBar>
-      {/*<ImageStream
-        likedImagePaths={[]}
-        folderImagePaths={folderImagePaths}
-        ShowViewerFunction={switchViewer}
-      ></ImageStream>*/}
       <div className="app-stream-grid app-stream px-5" ref={container}>
-        <RecentStream
-          recentImagePaths={recentImagePaths}
+        <ImageStream
+          imagePaths={recentImagePaths}
+          type="recent"
           ClickCallback={recentClickCallback}
-        ></RecentStream>
-        <LikedStream
-          likedImagePaths={likedImagePaths}
-          ShowViewerFunction={switchViewer}
-        ></LikedStream>
-        <FolderStream
-          folderImagePaths={folderImagePaths}
+          title="最近看过"
+        ></ImageStream>
+        <ImageStream
+          imagePaths={likedImagePaths}
+          type="liked"
+          ClickCallback={likedClickCallback}
+          title="喜欢的图片"
+        ></ImageStream>
+        <ImageStream
+          imagePaths={folderImagePaths}
+          type="folder"
           ClickCallback={folderClickCallback}
-        ></FolderStream>
+          title="打开的文件夹路径"
+        ></ImageStream>
         <BackToTopButton container={container}></BackToTopButton>
       </div>
       <TitleBar></TitleBar>

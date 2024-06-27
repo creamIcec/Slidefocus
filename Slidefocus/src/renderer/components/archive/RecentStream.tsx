@@ -1,8 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
-import { useWindowSize } from '../hooks/useWindowSize';
-import BackToTopButton from './Back2top';
-import ExpandPanelTitle from './ExpandPanelTitle';
-import { useRencentFiles } from '../hooks/useRencentImages';
+import { useWindowSize } from '../../hooks/useWindowSize';
+import BackToTopButton from '../Back2top';
+import ExpandPanelTitle from '../ExpandPanelTitle';
+import { useRencentFiles } from '../../hooks/useRencentImages';
 
 /*
   1. 读取下一张图片

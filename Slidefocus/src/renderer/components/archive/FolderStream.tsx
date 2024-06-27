@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from 'react';
-import { useWindowSize } from '../hooks/useWindowSize';
-import ExpandPanelTitle from './ExpandPanelTitle';
+import { useWindowSize } from '../../hooks/useWindowSize';
+import ExpandPanelTitle from '../ExpandPanelTitle';
 
 /*
   1. 读取下一张图片
