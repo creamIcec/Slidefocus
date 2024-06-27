@@ -52,7 +52,7 @@ function isHTMLElement(element: Element): element is HTMLElement {
 
 // 保存被点击图片对象
 const clickedImages: any[] = [];
-const likedImages: any[] = [];
+const likedImages: ImageRawRecord[] = [];
 //定义最近浏览的最大保存图片数量
 const MAX_QUEUE_LENGTH = 10;
 //保存图片路径的json文件
@@ -312,12 +312,12 @@ const setUpChannels = () => {
         likedImages.splice(existingImageIndex, 1);
       } else {
         // 如果图片信息已存在,且用户喜欢该图片,则更新信息
-        likedImages[existingImageIndex].liked = liked;
+        likedImages[existingImageIndex].liked = !liked;
         likedImages[existingImageIndex].tags = tags;
       }
     } else {
       // 如果图片信息不存在,则添加新的信息,将liked设置为true
-      likedImages.unshift({ path: imagePath, liked: true, tags });
+      likedImages.unshift({ path: imagePath, liked: true, tags, lastModified: '' });
     }
   
     // 将更新后的数据写入JSON文件

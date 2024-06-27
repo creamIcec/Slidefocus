@@ -79,8 +79,8 @@ function AppContainer() {
     const likedClickCallback = async (index: number) => {
       try {
         // 获取当前点击的图片路径和其他相关信息
-        const imagePath = folderImagePaths[index];
-        const isLiked = likedImagePaths.includes(imagePath);
+        const imagePath = folderImages[index].path;
+        const isLiked = likedImages[index].path.includes(imagePath);
         const tags: any[] = []; // 假设这里有图片的标签信息
     
         // 保存更新后的喜欢状态
@@ -91,11 +91,11 @@ function AppContainer() {
         );
     
         // 更新组件状态
-        setLikedImagePaths(updatedLikedImagePaths);
+        setLikedImages(updatedLikedImagePaths);
       } catch (error) {
         console.error('Error updating liked image:', error);
       }
-   // };
+    //};
   };
 
   const openSingleImageCallback = (path: string) => {
