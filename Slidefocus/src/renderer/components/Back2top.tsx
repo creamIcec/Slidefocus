@@ -10,7 +10,6 @@ export default function BackToTopButton({
   useEffect(() => {
     const _container = container.current;
     const toggleVisibility = () => {
-      console.log(_container!.scrollTop);
       if (_container!.scrollTop > 2000) {
         setIsVisible(true);
       } else {

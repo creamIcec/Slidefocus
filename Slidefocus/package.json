@@ -250,7 +250,8 @@
     "patterns": [
       "!**/**",
       "src/main/**",
-      "!src/main/clicked-image-paths.json"
+      "!src/main/clicked-image-paths.json",
+      "!src/main/liked-image-paths.json"
     ],
     "logLevel": "quiet"
   }

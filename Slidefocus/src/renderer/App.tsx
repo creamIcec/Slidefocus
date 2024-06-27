@@ -29,8 +29,7 @@ type CurrentImageViewModel = {
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
-  const [imagePath, setImagePath] = useState<string>('');
-
+  const [currentImage, setCurrentImage] = useState<ImageRawRecord>();
   const [folderImages, setFolderImages] = useState<ImageRawRecord[]>([]); //文件夹中的所有图片
   const [recentImages, setRecentImages] = useState<ImageRawRecord[]>([]); //最近的所有图片
   const [likedImages, setLikedImages] = useState<ImageRawRecord[]>([]); //喜欢的所有图片
@@ -50,15 +49,56 @@ function AppContainer() {
   }, [displayCopyMessage]);
 
   const recentClickCallback = (index: number) => {
-    setImagePath(recentImages[index].path);
+    setCurrentImage(recentImages[index]);
     setCurrentFullView({ streamType: 'recent', index: index });
   };
 
   const folderClickCallback = (index: number) => {
-    setImagePath(folderImages[index].path);
+    setCurrentImage(folderImages[index]);
     setCurrentFullView({ streamType: 'folder', index: index });
     handleImageClickForRecent(folderImages[index]);
     fetchRecent();
+  };
+
+  const likedClickCallback = (index: number) => {
+    setCurrentImage(likedImages[index]);
+    setCurrentFullView({ streamType: 'liked', index: index });
+    handleImageClickForRecent(likedImages[index]);
+    fetchRecent();
+  };
+
+  const likedCallback = (newLikedImages: ImageRawRecord[]) => {
+    console.log('接收到的likedImages:');
+    console.log(newLikedImages);
+    setLikedImages(newLikedImages);
+  };
+
+  const setLikeStatedFolderImages = (images: ImageRawRecord[]) => {
+    const newFolderImages = images.map((item) => {
+      if (likedImages.map((likedItem) => likedItem.path).includes(item.path)) {
+        item.liked = true;
+      } else {
+        item.liked = false;
+      }
+      return item;
+    });
+    console.log('new folder:');
+    console.log(newFolderImages);
+    setFolderImages(newFolderImages);
+  };
+
+  const updateImageLikedState = () => {
+    const newRecentImages = recentImages.map((item) => {
+      if (
+        recentImages.map((recentItem) => recentItem.path).includes(item.path)
+      ) {
+        item.liked = true;
+      } else {
+        item.liked = false;
+      }
+      return item;
+    });
+    setRecentImages(newRecentImages);
   };
 
   const onSearch = (searchTerm: string) => {
@@ -72,43 +112,21 @@ function AppContainer() {
         streamType: 'search',
         index: found,
       });
-      setImagePath(allImages[found].path);
+      setCurrentImage(allImages[found]);
       handleImageClickForRecent(allImages[found]);
       fetchRecent();
     }
   };
 
-  //const likedClickCallback = (index: number) => {
-  const likedClickCallback = async (index: number) => {
-    try {
-      // 获取当前点击的图片路径和其他相关信息
-      const imagePath = folderImages[index].path;
-      const isLiked = likedImages.map((item) => item.path).includes(imagePath);
-      const tags: any[] = []; // 假设这里有图片的标签信息
-
-      // 保存更新后的喜欢状态
-      const updatedLikedImages = await window.connectionAPIs.saveLikedImages(
-        imagePath,
-        !isLiked,
-        tags,
-      );
-
-      // 更新组件状态
-      setLikedImages(updatedLikedImages);
-    } catch (error) {
-      console.error('Error updating liked image:', error);
-    }
-    // };
-  };
-
   const openSingleImageCallback = (path: string) => {
-    setImagePath(path);
-    handleImageClickForRecent({
+    const imageObj = {
       path: path || '',
       liked: false,
       tags: '',
       lastModified: '',
-    });
+    };
+    setCurrentImage(imageObj);
+    handleImageClickForRecent(imageObj);
     fetchRecent();
   };
 
@@ -119,7 +137,7 @@ function AppContainer() {
     } else {
       newIndex = oldIndex + 1;
     }
-    setImagePath(images[newIndex].path);
+    setCurrentImage(images[newIndex]);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
     return images[newIndex].path;
@@ -132,7 +150,7 @@ function AppContainer() {
     } else {
       newIndex = oldIndex - 1;
     }
-    setImagePath(images[newIndex].path);
+    setCurrentImage(images[newIndex]);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
     return images[newIndex].path;
@@ -210,7 +228,7 @@ function AppContainer() {
 
   async function fetchLiked() {
     const likedImages = await window.connectionAPIs.readLikedImages();
-    setLikedImages(likedImages.map((item: any) => item.path));
+    setLikedImages(likedImages);
   }
 
   function updateCopyMessage(message: string) {
@@ -219,7 +237,11 @@ function AppContainer() {
   }
   //一键复制路径
   function copyPath() {
-    const content = imagePath;
+    const content = currentImage?.path;
+    if (!content) {
+      updateCopyMessage('请尝试重新复制!');
+      return;
+    }
     const systemPath = content.slice(6, content.length);
     navigator.clipboard.writeText(systemPath);
     updateCopyMessage('复制路径成功!');
@@ -239,10 +261,14 @@ function AppContainer() {
   }
   //一键复制图片
   function copyImage() {
+    if (!currentImage) {
+      return;
+    }
+
     var canvas = document.createElement('canvas'); // 创建一个画板
     let image = new Image();
     image.setAttribute('crossOrigin', 'Anonymous'); // 可能会有跨域问题
-    image.src = imagePath;
+    image.src = currentImage.path;
 
     image.onload = () => {
       // 图片加载完成事件
@@ -259,18 +285,25 @@ function AppContainer() {
     setImageSortMethod(sortMethod);
   }
 
-  const container = useRef<HTMLDivElement>(null);
-
   useEffect(() => {
-    if (imagePath && imagePath != '') {
+    if (currentImage) {
       setIsViewerPresent(true);
     }
-  }, [imagePath]);
+  }, [currentImage]);
+
+  useEffect(() => {
+    console.log('初次更新喜欢状态');
+    console.log(likedImages);
+    updateImageLikedState();
+  }, [likedImages]);
 
   useEffect(() => {
     fetchRecent();
+    fetchLiked();
     return () => {};
-  }, []); //第一次初始化时拉取最近看过
+  }, []); //第一次初始化
+
+  const container = useRef<HTMLDivElement>(null);
 
   return (
     <div className="app-grid-layout">
@@ -280,6 +313,7 @@ function AppContainer() {
           images={recentImages}
           type="recent"
           ClickCallback={recentClickCallback}
+          LikedCallback={likedCallback}
           title="最近看过"
           sortMethod={imageSortMethod}
         ></ImageStream>
@@ -287,6 +321,7 @@ function AppContainer() {
           images={likedImages}
           type="liked"
           ClickCallback={likedClickCallback}
+          LikedCallback={likedCallback}
           title="喜欢的图片"
           sortMethod={imageSortMethod}
         ></ImageStream>
@@ -294,6 +329,7 @@ function AppContainer() {
           images={folderImages}
           type="folder"
           ClickCallback={folderClickCallback}
+          LikedCallback={likedCallback}
           title="打开的文件夹路径"
           sortMethod={imageSortMethod}
         ></ImageStream>
@@ -303,12 +339,13 @@ function AppContainer() {
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
-          imagePath={imagePath}
+          image={currentImage!}
           closeImageViewFunction={() => setIsViewerPresent(false)}
           nextImageFunction={fullViewNextImage}
           lastImageFunction={fullViewLastImage}
           copyImagePathFunction={copyPath}
           copyImageFunction={copyImage}
+          likedCallback={likedCallback}
         ></FullScreenImageView>
       ) : null}
 
@@ -320,7 +357,7 @@ function AppContainer() {
       ) : null}
       <OpenButton
         openSingleImageCallback={openSingleImageCallback}
-        setImages={setFolderImages}
+        setImages={setLikeStatedFolderImages}
       />
     </div>
   );

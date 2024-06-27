@@ -180,6 +180,22 @@ const createWindow = async () => {
   new AppUpdater();
 };
 
+const updateRecentLikedState = () => {
+  const newClickedImages = clickedImages.map((item) => {
+    if (likedImages.map((likedItem) => likedItem.path).includes(item.path)) {
+      item.liked = true;
+    } else {
+      item.liked = false;
+    }
+    return item;
+  });
+  clickedImages.length = 0;
+  clickedImages.push(...newClickedImages);
+
+  // 将更新后的数据写入JSON文件
+  fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
+};
+
 //建立所有的前后通信通道
 const setUpChannels = () => {
   ipcMain.on('minimizeApp', () => {
@@ -309,7 +325,7 @@ const setUpChannels = () => {
   ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
     // 检查内存区中是否已经存在该图片信息
     const existingImageIndex = likedImages.findIndex(
-      (img) => img.path === imagePath
+      (img) => img.path === imagePath,
     );
     if (existingImageIndex !== -1) {
       // 如果图片信息已存在,且用户不喜欢该图片,则删除该图片信息
@@ -318,15 +334,23 @@ const setUpChannels = () => {
       }
     } else {
       // 如果图片信息不存在,则添加新的信息,将liked设置为true
-      likedImages.unshift({ path: imagePath, liked: true, tags, lastModified: '' });
+      likedImages.unshift({
+        path: imagePath,
+        liked: true,
+        tags,
+        lastModified: '',
+      });
     }
-  
+
     // 将更新后的数据写入JSON文件
     fs.writeFileSync(likedImagePathsFilePath, JSON.stringify(likedImages));
-  
+
+    updateRecentLikedState();
+
     console.log(
-      `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`
+      `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
     );
+    console.log('新的喜欢:' + likedImages);
     return likedImages;
   });
   ipcMain.handle('get-recent-image-paths', async (event) => {

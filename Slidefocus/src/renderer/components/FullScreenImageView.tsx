@@ -1,21 +1,33 @@
+import { ImageRawRecord } from '../App';
 import FullScreenButton from './FullScreenButton';
 import LikeButton from './LikeButton';
 
 export default function FullScreenImageView({
-  imagePath,
+  image,
   closeImageViewFunction,
   nextImageFunction,
   lastImageFunction,
   copyImagePathFunction,
   copyImageFunction,
+  likedCallback,
 }: {
-  imagePath: string;
+  image: ImageRawRecord;
   closeImageViewFunction: Function;
   nextImageFunction: Function;
   lastImageFunction: Function;
   copyImagePathFunction: Function;
   copyImageFunction: Function;
+  likedCallback: Function;
 }) {
+  const onToggle = (path: string, liked: boolean, tags: string) => {
+    const newLikedImages = window.connectionAPIs.saveLikedImages(
+      path,
+      liked,
+      tags,
+    );
+    likedCallback(newLikedImages);
+  };
+
   return (
     <div className="w-full h-full fixed top-0 left-0 bg-yellow-300/40 backdrop-blur-sm z-[1000]">
       <div className="fullscreen-grid-layout pointer-events-auto">
@@ -41,7 +53,7 @@ export default function FullScreenImageView({
         </div>
         <div className="fullscreen-image-grid">
           <img
-            src={imagePath}
+            src={image.path}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </div>
@@ -52,7 +64,11 @@ export default function FullScreenImageView({
           ></FullScreenButton>
         </div>
         <div className="like-button-container">
-          <LikeButton></LikeButton>
+          <LikeButton
+            onToggle={onToggle}
+            imagePath={image.path}
+            liked={image.liked}
+          ></LikeButton>
         </div>
       </div>
     </div>
