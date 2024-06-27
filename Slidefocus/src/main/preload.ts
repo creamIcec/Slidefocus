@@ -1,6 +1,7 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
 import { contextBridge, ipcRenderer, IpcRendererEvent } from 'electron';
+import { ImageRawRecord } from '../renderer/App';
 
 export type Channels =
   | 'ipc-example'
@@ -50,14 +51,12 @@ const ConnectionHandler = {
   },
 
   //保存最近看过的图片
-  saveRecentImages: async (imagePath: any, liked: any, tags: any) => {
+  saveRecentImages: async (image: ImageRawRecord) => {
     try {
       // 向主进程发送保存点击图片信息的请求
       const updatedClickedImagePaths = await ipcRenderer.invoke(
         'save-clicked-image',
-        imagePath,
-        liked,
-        tags,
+        image,
       );
       return updatedClickedImagePaths;
     } catch (error) {
@@ -122,7 +121,6 @@ const ConnectionHandler = {
       return null;
     }
   },
-
 };
 
 contextBridge.exposeInMainWorld('connectionAPIs', ConnectionHandler);

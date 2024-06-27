@@ -61,10 +61,7 @@ const clickedImagePathsFilePath = path.join(
   'clicked-image-paths.json',
 );
 //保存喜欢的图片路径的json文件
-const likedImagePathsFilePath = path.join(
-  __dirname,
-  'liked-image-paths.json',
-);
+const likedImagePathsFilePath = path.join(__dirname, 'liked-image-paths.json');
 //保存浏览过的图片路径
 /*ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
   // 检查 clickedImagePaths 是否已经存在该图片的记录
@@ -263,29 +260,37 @@ const setUpChannels = () => {
       return filePaths;
     }
   });
-  ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
+  ipcMain.handle('save-clicked-image', (event, image: ImageRawRecord) => {
     // 检查内存区中是否已经存在该图片信息
     const existingImageIndex = clickedImages.findIndex(
-      (img) => img.path === imagePath,
+      (img) => img.path === image.path,
     );
 
     if (existingImageIndex !== -1) {
       // 如果图片信息已存在,且信息完全相同,则将其移动到最前面
       if (
-        clickedImages[existingImageIndex].liked === liked &&
-        clickedImages[existingImageIndex].tags.join(',') === tags.join(',')
+        clickedImages[existingImageIndex].liked === image.liked &&
+        clickedImages[existingImageIndex].tags.join(',') === image.tags
       ) {
         clickedImages.splice(existingImageIndex, 1);
-        clickedImages.unshift({ path: imagePath, liked, tags });
+        clickedImages.unshift({
+          path: image.path,
+          liked: image.liked,
+          tags: image.tags,
+        });
       } else {
         // 如果图片信息已存在,但信息不同,则更新信息并将其移动到最前面
-        clickedImages[existingImageIndex].liked = liked;
-        clickedImages[existingImageIndex].tags = tags;
+        clickedImages[existingImageIndex].liked = image.liked;
+        clickedImages[existingImageIndex].tags = image.liked;
         clickedImages.unshift(clickedImages.splice(existingImageIndex, 1)[0]);
       }
     } else {
       // 如果图片信息不存在,则添加新的信息
-      clickedImages.unshift({ path: imagePath, liked, tags });
+      clickedImages.unshift({
+        path: image.path,
+        liked: image.liked,
+        tags: image.tags,
+      });
 
       // 如果超过最大上限,则删除最早的一条记录
       if (clickedImages.length > MAX_QUEUE_LENGTH) {
@@ -297,14 +302,14 @@ const setUpChannels = () => {
     fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
 
     console.log(
-      `Saved clicked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
+      `Saved clicked image path: ${image.path}, liked: ${image.liked}, tags: ${image.tags}`,
     );
     return clickedImages;
   });
   ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
     // 检查内存区中是否已经存在该图片信息
     const existingImageIndex = likedImages.findIndex(
-      (img) => img.path === imagePath
+      (img) => img.path === imagePath,
     );
     if (existingImageIndex !== -1) {
       // 如果图片信息已存在,且用户不喜欢该图片,则删除该图片信息
@@ -319,12 +324,12 @@ const setUpChannels = () => {
       // 如果图片信息不存在,则添加新的信息,将liked设置为true
       likedImages.unshift({ path: imagePath, liked: true, tags });
     }
-  
+
     // 将更新后的数据写入JSON文件
     fs.writeFileSync(likedImagePathsFilePath, JSON.stringify(likedImages));
-  
+
     console.log(
-      `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`
+      `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
     );
     return likedImages;
   });

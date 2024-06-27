@@ -60,7 +60,7 @@ function AppContainer() {
   const folderClickCallback = (index: number) => {
     setImagePath(folderImages[index].path);
     setCurrentFullView({ streamType: 'folder', index: index });
-    handleImageClickForRecent(folderImages[index], false, '');
+    handleImageClickForRecent(folderImages[index]);
     fetchRecent();
   };
 
@@ -70,37 +70,39 @@ function AppContainer() {
     if (index) {
       setCurrentFullView({ streamType: 'search', index: index });
       setImagePath(allImagePaths[index].path);
-      handleImageClickForRecent(allImagePaths[index], false, '');
+      handleImageClickForRecent(allImagePaths[index]);
       fetchRecent();
     }
   };
 
   //const likedClickCallback = (index: number) => {
-    const likedClickCallback = async (index: number) => {
-      try {
-        // 获取当前点击的图片路径和其他相关信息
-        const imagePath = folderImagePaths[index];
-        const isLiked = likedImagePaths.includes(imagePath);
-        const tags: any[] = []; // 假设这里有图片的标签信息
-    
-        // 保存更新后的喜欢状态
-        const updatedLikedImagePaths = await window.connectionAPIs.saveLikedImages(
-          imagePath,
-          !isLiked,
-          tags
-        );
-    
-        // 更新组件状态
-        setLikedImagePaths(updatedLikedImagePaths);
-      } catch (error) {
-        console.error('Error updating liked image:', error);
-      }
-   // };
+  const likedClickCallback = async (index: number) => {
+    try {
+      // 获取当前点击的图片路径和其他相关信息
+      const imagePath = folderImagePaths[index];
+      const isLiked = likedImagePaths.includes(imagePath);
+      const tags: any[] = []; // 假设这里有图片的标签信息
+
+      // 保存更新后的喜欢状态
+      const updatedLikedImagePaths =
+        await window.connectionAPIs.saveLikedImages(imagePath, !isLiked, tags);
+
+      // 更新组件状态
+      setLikedImagePaths(updatedLikedImagePaths);
+    } catch (error) {
+      console.error('Error updating liked image:', error);
+    }
+    // };
   };
 
   const openSingleImageCallback = (path: string) => {
     setImagePath(path);
-    handleImageClickForRecent(path, false, ''); //TODO 获取点击红心状态
+    handleImageClickForRecent({
+      path: path || '',
+      liked: false,
+      tags: '',
+      lastModified: '',
+    });
     fetchRecent();
   };
 
@@ -127,11 +129,12 @@ function AppContainer() {
     setImagePath(images[newIndex].path);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
+    return images[newIndex].path;
   };
 
   const fullViewNextImage = () => {
     const index = currentFullView.index;
-    let path;
+    let path = '';
     let flag = false;
     switch (currentFullView.streamType) {
       case 'folder': {
@@ -153,12 +156,18 @@ function AppContainer() {
     if (flag) {
       return;
     }
-    handleImageClickForRecent(path, false, '');
+    handleImageClickForRecent({
+      path: path || '',
+      liked: false,
+      tags: '',
+      lastModified: '',
+    });
   };
 
   const fullViewLastImage = () => {
     const index = currentFullView.index;
     let path;
+    let flag = false;
     switch (currentFullView.streamType) {
       case 'folder': {
         path = getFullViewLastIndex(index, folderImages);
@@ -172,8 +181,19 @@ function AppContainer() {
         path = getFullViewLastIndex(index, likedImages);
         break;
       }
+      case 'search': {
+        flag = true;
+      }
     }
-    handleImageClickForRecent(path, false, '');
+    if (flag) {
+      return;
+    }
+    handleImageClickForRecent({
+      path: path || '',
+      liked: false,
+      tags: '',
+      lastModified: '',
+    });
   };
 
   async function fetchRecent() {
@@ -191,7 +211,7 @@ function AppContainer() {
     setCopyMessage(message);
     setDisplayCopyMessage(true);
   }
-//一键复制路径
+  //一键复制路径
   function copyPath() {
     const content = imagePath;
     const systemPath = content.slice(6, content.length);
@@ -211,7 +231,7 @@ function AppContainer() {
       updateCopyMessage('请尝试重新复制');
     }
   }
-//一键复制图片
+  //一键复制图片
   function copyImage() {
     var canvas = document.createElement('canvas'); // 创建一个画板
     let image = new Image();

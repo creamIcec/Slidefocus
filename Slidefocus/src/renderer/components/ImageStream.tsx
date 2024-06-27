@@ -226,7 +226,7 @@ export default function ImageStream({
   const mainContainer = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={mainContainer} style={{ width: '100%' }}>
+    <div ref={mainContainer}>
       <ExpandPanelTitle
         expandFunction={switchFolder}
         title={title}

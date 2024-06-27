@@ -43,7 +43,7 @@ export default function OpenButton({
   };
 
   return (
-    <div className="w-full fixed bottom-4 flex flex-row flex-nowrap place-content-center place-items-center pointer-events-none">
+    <div className="w-full fixed bottom-4 flex flex-row flex-nowrap place-content-center place-items-center pointer-events-none z-[1002]">
       <div className=" bg-bg/60 dark:bg-bg_dark/60 rounded-3xl backdrop-blur-sm">
         <div className="w-96 h-16 p-4 flex flex-row flex-nowrap gap-2 place-content-evenly">
           <button
