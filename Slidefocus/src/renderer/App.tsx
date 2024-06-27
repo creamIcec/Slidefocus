@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { Route, MemoryRouter as Router, Routes } from 'react-router-dom';
 import 'tailwindcss/tailwind.css';
 import './App.css';
@@ -11,6 +11,7 @@ import SideBar from './components/SideBar';
 import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
+import BackToTopButton from './components/Back2top';
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
@@ -30,6 +31,7 @@ function AppContainer() {
 
   const folderClickCallback = (index: number) => {
     setImagePath(folderImagePaths[index]);
+    handleImageClickForRecent(folderImagePaths[index], false, '');
     fetchRecent();
   };
 
@@ -48,6 +50,8 @@ function AppContainer() {
     const likedImages = await window.connectionAPIs.readFavoriteImages();
     setLikedImagePaths(likedImages.map((item: any) => item.path));
   }
+
+  const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
     if (imagePath && imagePath != '') {
@@ -68,7 +72,7 @@ function AppContainer() {
         folderImagePaths={folderImagePaths}
         ShowViewerFunction={switchViewer}
       ></ImageStream>*/}
-      <div className="app-stream-grid app-stream px-5">
+      <div className="app-stream-grid app-stream px-5" ref={container}>
         <RecentStream
           recentImagePaths={recentImagePaths}
           ClickCallback={recentClickCallback}
@@ -81,6 +85,7 @@ function AppContainer() {
           folderImagePaths={folderImagePaths}
           ClickCallback={folderClickCallback}
         ></FolderStream>
+        <BackToTopButton container={container}></BackToTopButton>
       </div>
       <TitleBar></TitleBar>
       <SideBar></SideBar>
