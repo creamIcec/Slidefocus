@@ -1,11 +1,12 @@
-import { sortImages } from '../utils/sort';
+import { ImageRawRecord } from '../App';
+import { sortImagePaths, sortImages } from '../utils/sort';
 
 export default function OpenButton({
   openSingleImageCallback,
-  setImagePaths,
+  setImages,
 }: {
   openSingleImageCallback: Function;
-  setImagePaths: Function;
+  setImages: Function;
 }) {
   const handleOpenFile = async () => {
     try {
@@ -18,19 +19,26 @@ export default function OpenButton({
 
   const handleOpenFolder = async () => {
     try {
-      const imagePaths: string[] | null =
+      const images: ImageRawRecord[] | null =
         await window.connectionAPIs.readLocalFolder();
-      if (imagePaths !== null) {
-        const appPrefixedPaths = imagePaths.map((path) => 'app://' + path);
-        console.log(appPrefixedPaths);
-        sortImages(appPrefixedPaths);
-        setImagePaths(appPrefixedPaths);
+      if (images !== null) {
+        const appPrefixedImages = images.map((image) => {
+          return {
+            path: 'app://' + image.path,
+            lastModified: image.lastModified,
+            liked: image.liked,
+            tags: image.tags,
+          } as ImageRawRecord;
+        });
+        console.log(appPrefixedImages);
+        sortImages(appPrefixedImages, 'path');
+        setImages(appPrefixedImages);
       } else {
-        setImagePaths(null);
+        setImages(null);
       }
     } catch (error) {
       console.error('读取文件夹中本地图像时出错:', error);
-      setImagePaths(null);
+      setImages(null);
     }
   };
 

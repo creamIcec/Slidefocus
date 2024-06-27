@@ -109,11 +109,11 @@ const ConnectionHandler = {
       );
 
       if (folderPaths.length > 0) {
-        const imagePaths = await ipcRenderer.invoke(
+        const images = await ipcRenderer.invoke(
           'read-folder-images',
           folderPaths,
         );
-        return imagePaths;
+        return images;
       } else {
         return [];
       }

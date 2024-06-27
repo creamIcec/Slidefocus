@@ -12,11 +12,18 @@ import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
 import BackToTopButton from './components/Back2top';
-import { sortImages } from './utils/sort';
+import { SortType, sortImages } from './utils/sort';
 import MessagePopup from './components/MessagePopup';
 import ImageStream from './components/ImageStream';
 
-export type ImagePathsType = 'liked' | 'folder' | 'recent';
+export type ImagePathsType = 'liked' | 'folder' | 'recent' | 'search';
+
+export type ImageRawRecord = {
+  path: string;
+  liked: boolean;
+  tags: string;
+  lastModified: string;
+};
 
 type CurrentImageViewModel = {
   streamType: ImagePathsType;
@@ -27,9 +34,10 @@ function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
   const [imagePath, setImagePath] = useState<string>('');
 
-  const [folderImagePaths, setImagePaths] = useState<string[]>([]); //文件夹中的所有图片
-  const [recentImagePaths, setRecentImagePaths] = useState<string[]>([]); //最近的所有图片
-  const [likedImagePaths, setLikedImagePaths] = useState<string[]>([]); //喜欢的所有图片
+  const [folderImages, setFolderImages] = useState<ImageRawRecord[]>([]); //文件夹中的所有图片
+  const [recentImages, setRecentImages] = useState<ImageRawRecord[]>([]); //最近的所有图片
+  const [likedImages, setLikedImages] = useState<ImageRawRecord[]>([]); //喜欢的所有图片
+  const [imageSortMethod, setImageSortMethod] = useState<SortType>('path');
   const [currentFullView, setCurrentFullView] = useState<CurrentImageViewModel>(
     { streamType: 'folder', index: 0 },
   );
@@ -45,15 +53,26 @@ function AppContainer() {
   }, [displayCopyMessage]);
 
   const recentClickCallback = (index: number) => {
-    setImagePath(recentImagePaths[index]);
+    setImagePath(recentImages[index].path);
     setCurrentFullView({ streamType: 'recent', index: index });
   };
 
   const folderClickCallback = (index: number) => {
-    setImagePath(folderImagePaths[index]);
+    setImagePath(folderImages[index].path);
     setCurrentFullView({ streamType: 'folder', index: index });
-    handleImageClickForRecent(folderImagePaths[index], false, '');
+    handleImageClickForRecent(folderImages[index], false, '');
     fetchRecent();
+  };
+
+  const onSearch = (searchTerm: string) => {
+    const allImagePaths = folderImages.concat(recentImages).concat(likedImages);
+    const index = allImagePaths.map((item) => item.path).indexOf(searchTerm);
+    if (index) {
+      setCurrentFullView({ streamType: 'search', index: index });
+      setImagePath(allImagePaths[index].path);
+      handleImageClickForRecent(allImagePaths[index], false, '');
+      fetchRecent();
+    }
   };
 
   //const likedClickCallback = (index: number) => {
@@ -85,27 +104,27 @@ function AppContainer() {
     fetchRecent();
   };
 
-  const getFullViewNextIndex = (oldIndex: number, paths: string[]) => {
+  const getFullViewNextIndex = (oldIndex: number, images: ImageRawRecord[]) => {
     let newIndex = 0;
-    if (oldIndex >= paths.length - 1) {
+    if (oldIndex >= images.length - 1) {
       newIndex = 0;
     } else {
       newIndex = oldIndex + 1;
     }
-    setImagePath(paths[newIndex]);
+    setImagePath(images[newIndex].path);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
-    return paths[newIndex];
+    return images[newIndex].path;
   };
 
-  const getFullViewLastIndex = (oldIndex: number, paths: string[]) => {
+  const getFullViewLastIndex = (oldIndex: number, images: ImageRawRecord[]) => {
     let newIndex = 0;
     if (oldIndex <= 0) {
-      newIndex = paths.length - 1;
+      newIndex = images.length - 1;
     } else {
       newIndex = oldIndex - 1;
     }
-    setImagePath(paths[newIndex]);
+    setImagePath(images[newIndex].path);
     const streamType = currentFullView.streamType;
     setCurrentFullView({ streamType: streamType, index: newIndex });
   };
@@ -113,19 +132,26 @@ function AppContainer() {
   const fullViewNextImage = () => {
     const index = currentFullView.index;
     let path;
+    let flag = false;
     switch (currentFullView.streamType) {
       case 'folder': {
-        path = getFullViewNextIndex(index, folderImagePaths);
+        path = getFullViewNextIndex(index, folderImages);
         break;
       }
       case 'recent': {
-        path = getFullViewNextIndex(index, recentImagePaths);
+        path = getFullViewNextIndex(index, recentImages);
         break;
       }
       case 'liked': {
-        path = getFullViewNextIndex(index, likedImagePaths);
+        path = getFullViewNextIndex(index, likedImages);
         break;
       }
+      case 'search': {
+        flag = true;
+      }
+    }
+    if (flag) {
+      return;
     }
     handleImageClickForRecent(path, false, '');
   };
@@ -135,15 +161,15 @@ function AppContainer() {
     let path;
     switch (currentFullView.streamType) {
       case 'folder': {
-        path = getFullViewLastIndex(index, folderImagePaths);
+        path = getFullViewLastIndex(index, folderImages);
         break;
       }
       case 'recent': {
-        path = getFullViewLastIndex(index, recentImagePaths);
+        path = getFullViewLastIndex(index, recentImages);
         break;
       }
       case 'liked': {
-        path = getFullViewLastIndex(index, likedImagePaths);
+        path = getFullViewLastIndex(index, likedImages);
         break;
       }
     }
@@ -152,14 +178,13 @@ function AppContainer() {
 
   async function fetchRecent() {
     const recentImages = await window.connectionAPIs.readRecentImages();
-    const paths = recentImages.map((item: any) => item.path);
-    sortImages(paths);
-    setRecentImagePaths(paths);
+    sortImages(recentImages, 'path');
+    setRecentImages(recentImages);
   }
 
   async function fetchLiked() {
     const likedImages = await window.connectionAPIs.readLikedImages();
-    setLikedImagePaths(likedImages.map((item: any) => item.path));
+    setLikedImages(likedImages.map((item: any) => item.path));
   }
 
   function updateCopyMessage(message: string) {
@@ -203,6 +228,11 @@ function AppContainer() {
     };
   }
 
+  function _setSortMethod(sortMethod: SortType) {
+    console.log('当前排序方式:' + sortMethod);
+    setImageSortMethod(sortMethod);
+  }
+
   const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
@@ -218,29 +248,32 @@ function AppContainer() {
 
   return (
     <div className="app-grid-layout">
-      <ToolBar></ToolBar>
+      <ToolBar setSortMethod={_setSortMethod}></ToolBar>
       <div className="app-stream-grid app-stream px-5" ref={container}>
         <ImageStream
-          imagePaths={recentImagePaths}
+          images={recentImages}
           type="recent"
           ClickCallback={recentClickCallback}
           title="最近看过"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
-          imagePaths={likedImagePaths}
+          images={likedImages}
           type="liked"
           ClickCallback={likedClickCallback}
           title="喜欢的图片"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
-          imagePaths={folderImagePaths}
+          images={folderImages}
           type="folder"
           ClickCallback={folderClickCallback}
           title="打开的文件夹路径"
+          sortMethod={imageSortMethod}
         ></ImageStream>
         <BackToTopButton container={container}></BackToTopButton>
       </div>
-      <TitleBar></TitleBar>
+      <TitleBar onSearchCallback={onSearch}></TitleBar>
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
@@ -261,7 +294,7 @@ function AppContainer() {
       ) : null}
       <OpenButton
         openSingleImageCallback={openSingleImageCallback}
-        setImagePaths={setImagePaths}
+        setImages={setFolderImages}
       />
     </div>
   );
