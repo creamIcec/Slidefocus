@@ -73,25 +73,31 @@ function AppContainer() {
   };
 
   //const likedClickCallback = (index: number) => {
-  const likedClickCallback = async (index: number) => {
-    try {
-      // 获取当前点击的图片路径和其他相关信息
-      const imagePath = folderImages[index].path;
-      const isLiked = likedImages.map((item) => item.path).includes(imagePath);
-      const tags: any[] = []; // 假设这里有图片的标签信息
-
-      // 保存更新后的喜欢状态
-      const updatedLikedImages = await window.connectionAPIs.saveLikedImages(
-        imagePath,
-        !isLiked,
-        tags,
-      );
-
-      // 更新组件状态
-      setLikedImages(updatedLikedImages);
-    } catch (error) {
-      console.error('Error updating liked image:', error);
-    }
+    const likedClickCallback = async (index: number) => {
+      try {
+        // 获取当前点击的图片路径
+        const imagePath = folderImages[index].path;
+    
+        // 检查图片是否已在收藏夹中
+        const existingImageIndex = likedImages.findIndex((img) => img.path === imagePath);
+    
+        if (existingImageIndex !== -1) {
+          // 如果图片已在收藏夹中,则从收藏夹中删除
+          likedImages.splice(existingImageIndex, 1);
+        } else {
+          // 如果图片不在收藏夹中,则添加到收藏夹
+          likedImages.unshift({ path: imagePath, liked: true, tags: [], lastModified: '' });
+        }
+    
+        // 将更新后的收藏夹数据写入JSON文件
+        await window.connectionAPIs.saveLikedImages(likedImages);
+    
+        // 更新组件状态
+        setLikedImages(likedImages);
+      } catch (error) {
+        console.error('Error updating liked image:', error);
+      }
+    };
     // };
   };
 
