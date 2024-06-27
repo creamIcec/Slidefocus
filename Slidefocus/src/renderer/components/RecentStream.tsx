@@ -137,7 +137,7 @@ export default function RecentStream({
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
-    let remainingWidth = container.current?.offsetWidth; //剩余宽度
+    let remainingWidth = mainContainer.current?.offsetWidth; //剩余宽度
     let processed = 0;
     let restoreWidth = 0; //保存上一个的宽度， 用于恢复
     for (let i = 0; i < imageTempContainer.length; i++) {
@@ -192,7 +192,7 @@ export default function RecentStream({
         _streamContainer.push(rowContainer1);
         rowContainer1 = null;
 
-        remainingWidth = container.current?.clientWidth; //重置容器宽度
+        remainingWidth = mainContainer.current?.clientWidth; //重置容器宽度
 
         rowContainer2 = [];
         if (displayWidth > remainingWidth!) {
@@ -255,10 +255,10 @@ export default function RecentStream({
     setRecentVisible(!recentVisible);
   };
 
-  const container = useRef<HTMLDivElement>(null);
+  const mainContainer = useRef<HTMLDivElement>(null);
 
   return (
-    <div ref={container}>
+    <div ref={mainContainer}>
       <ExpandPanelTitle
         expandFunction={switchRecent}
         title="最近看过"
@@ -266,7 +266,7 @@ export default function RecentStream({
       <div className="stream-container p-5">
         {recentVisible ? buildImageRows('recent') : null}
       </div>
-      <BackToTopButton container={container}></BackToTopButton>
+      <BackToTopButton container={mainContainer}></BackToTopButton>
     </div>
   );
 }

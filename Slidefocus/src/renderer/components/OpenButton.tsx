@@ -1,3 +1,5 @@
+import { sortImages } from '../utils/sort';
+
 export default function OpenButton({
   openSingleImageCallback,
   setImagePaths,
@@ -12,12 +14,6 @@ export default function OpenButton({
     } catch (error) {
       console.error('读取本地图像时出错:', error);
     }
-  };
-
-  const sortImages = (srcArray: string[]) => {
-    srcArray.sort((item1, item2) => {
-      return item1.localeCompare(item2, 'zh-CN');
-    });
   };
 
   const handleOpenFolder = async () => {

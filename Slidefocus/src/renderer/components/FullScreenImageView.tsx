@@ -2,25 +2,31 @@ import FullScreenButton from './FullScreenButton';
 import LikeButton from './LikeButton';
 
 export default function FullScreenImageView({
-  imagePaths,
   imagePath,
   closeImageViewFunction,
+  nextImageFunction,
+  lastImageFunction,
+  copyImagePathFunction,
+  copyImageFunction,
 }: {
-  imagePaths: string[];
   imagePath: string;
   closeImageViewFunction: Function;
+  nextImageFunction: Function;
+  lastImageFunction: Function;
+  copyImagePathFunction: Function;
+  copyImageFunction: Function;
 }) {
   return (
-    <div className="w-full h-full fixed top-0 left-0 bg-yellow-300/40 backdrop-blur-sm">
+    <div className="w-full h-full fixed top-0 left-0 bg-yellow-300/40 backdrop-blur-sm z-[1000]">
       <div className="fullscreen-grid-layout pointer-events-auto">
         <div className="flex flex-nowrap gap-2 flex-row-reverse fullscreen-toolbar-grid">
           <FullScreenButton
             icon="link"
-            onClickFunction={null}
+            onClickFunction={copyImagePathFunction}
           ></FullScreenButton>
           <FullScreenButton
             icon="file_copy"
-            onClickFunction={null}
+            onClickFunction={copyImageFunction}
           ></FullScreenButton>
           <FullScreenButton
             icon="close"
@@ -30,7 +36,7 @@ export default function FullScreenImageView({
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-lastarrow-grid">
           <FullScreenButton
             icon="arrow_circle_left"
-            onClickFunction={null}
+            onClickFunction={lastImageFunction}
           ></FullScreenButton>
         </div>
         <div className="fullscreen-image-grid">
@@ -42,7 +48,7 @@ export default function FullScreenImageView({
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-nextarrow-grid">
           <FullScreenButton
             icon="arrow_circle_right"
-            onClickFunction={null}
+            onClickFunction={nextImageFunction}
           ></FullScreenButton>
         </div>
         <div className="like-button-container">

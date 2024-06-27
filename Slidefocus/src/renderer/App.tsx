@@ -12,6 +12,15 @@ import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
 import BackToTopButton from './components/Back2top';
+import { sortImages } from './utils/sort';
+import MessagePopup from './components/MessagePopup';
+
+type ImagePathsType = 'liked' | 'folder' | 'recent';
+
+type CurrentImageViewModel = {
+  streamType: ImagePathsType;
+  index: number;
+};
 
 function AppContainer() {
   const [isViewerPresent, setIsViewerPresent] = useState<boolean>(false);
@@ -20,6 +29,19 @@ function AppContainer() {
   const [folderImagePaths, setImagePaths] = useState<string[]>([]); //文件夹中的所有图片
   const [recentImagePaths, setRecentImagePaths] = useState<string[]>([]); //最近的所有图片
   const [likedImagePaths, setLikedImagePaths] = useState<string[]>([]); //喜欢的所有图片
+  const [currentFullView, setCurrentFullView] = useState<CurrentImageViewModel>(
+    { streamType: 'folder', index: 0 },
+  );
+  const [copyMessage, setCopyMessage] = useState<string>('');
+  const [displayCopyMessage, setDisplayCopyMessage] = useState<boolean>(false);
+
+  useEffect(() => {
+    const timeout = setTimeout(() => {
+      setDisplayCopyMessage(false);
+    }, 2000);
+
+    return () => clearTimeout(timeout);
+  }, [displayCopyMessage]);
 
   const switchViewer = (imageIndex: number) => {
     setIsViewerPresent(!isViewerPresent);
@@ -27,10 +49,12 @@ function AppContainer() {
 
   const recentClickCallback = (index: number) => {
     setImagePath(recentImagePaths[index]);
+    setCurrentFullView({ streamType: 'recent', index: index });
   };
 
   const folderClickCallback = (index: number) => {
     setImagePath(folderImagePaths[index]);
+    setCurrentFullView({ streamType: 'folder', index: index });
     handleImageClickForRecent(folderImagePaths[index], false, '');
     fetchRecent();
   };
@@ -41,14 +65,117 @@ function AppContainer() {
     fetchRecent();
   };
 
+  const getFullViewNextIndex = (oldIndex: number, paths: string[]) => {
+    let newIndex = 0;
+    if (oldIndex >= paths.length - 1) {
+      newIndex = 0;
+    } else {
+      newIndex = oldIndex + 1;
+    }
+    setImagePath(paths[newIndex]);
+    const streamType = currentFullView.streamType;
+    setCurrentFullView({ streamType: streamType, index: newIndex });
+  };
+
+  const getFullViewLastIndex = (oldIndex: number, paths: string[]) => {
+    let newIndex = 0;
+    if (oldIndex <= 0) {
+      newIndex = paths.length - 1;
+    } else {
+      newIndex = oldIndex - 1;
+    }
+    setImagePath(paths[newIndex]);
+    const streamType = currentFullView.streamType;
+    setCurrentFullView({ streamType: streamType, index: newIndex });
+  };
+
+  const fullViewNextImage = () => {
+    const index = currentFullView.index;
+    switch (currentFullView.streamType) {
+      case 'folder': {
+        getFullViewNextIndex(index, folderImagePaths);
+        break;
+      }
+      case 'recent': {
+        getFullViewNextIndex(index, recentImagePaths);
+        break;
+      }
+      case 'liked': {
+        getFullViewNextIndex(index, likedImagePaths);
+        break;
+      }
+    }
+  };
+
+  const fullViewLastImage = () => {
+    const index = currentFullView.index;
+    switch (currentFullView.streamType) {
+      case 'folder': {
+        getFullViewLastIndex(index, folderImagePaths);
+        break;
+      }
+      case 'recent': {
+        getFullViewLastIndex(index, recentImagePaths);
+        break;
+      }
+      case 'liked': {
+        getFullViewLastIndex(index, likedImagePaths);
+        break;
+      }
+    }
+  };
+
   async function fetchRecent() {
     const recentImages = await window.connectionAPIs.readRecentImages();
-    setRecentImagePaths(recentImages.map((item: any) => item.path));
+    const paths = recentImages.map((item: any) => item.path);
+    sortImages(paths);
+    setRecentImagePaths(paths);
   }
 
   async function fetchLiked() {
     const likedImages = await window.connectionAPIs.readFavoriteImages();
     setLikedImagePaths(likedImages.map((item: any) => item.path));
+  }
+
+  function updateCopyMessage(message: string) {
+    setCopyMessage(message);
+    setDisplayCopyMessage(true);
+  }
+
+  function copyPath() {
+    const content = imagePath;
+    const systemPath = content.slice(6, content.length);
+    navigator.clipboard.writeText(systemPath);
+    updateCopyMessage('复制路径成功!');
+  }
+
+  async function clipboardImg(url: string) {
+    try {
+      const data = await fetch(url);
+      const blob = await data.blob();
+      await navigator.clipboard.write([
+        new ClipboardItem({ [blob.type]: blob }),
+      ]);
+      updateCopyMessage('复制图片成功!');
+    } catch (err) {
+      updateCopyMessage('请尝试重新复制');
+    }
+  }
+
+  function copyImage() {
+    var canvas = document.createElement('canvas'); // 创建一个画板
+    let image = new Image();
+    image.setAttribute('crossOrigin', 'Anonymous'); // 可能会有跨域问题
+    image.src = imagePath;
+
+    image.onload = () => {
+      // 图片加载完成事件
+      canvas.width = image.width; // 设置画板宽度
+      canvas.height = image.height; // 设置画板高度
+      canvas.getContext('2d')!.drawImage(image, 0, 0); // 加载图片到画板
+      let dataUrl = canvas.toDataURL('image/png'); // 转换图片为 data URL，格式为 png
+      clipboardImg(dataUrl); // 调用复制方法
+    };
   }
 
   const container = useRef<HTMLDivElement>(null);
@@ -91,12 +218,21 @@ function AppContainer() {
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
-          imagePaths={folderImagePaths}
           imagePath={imagePath}
           closeImageViewFunction={() => setIsViewerPresent(false)}
+          nextImageFunction={fullViewNextImage}
+          lastImageFunction={fullViewLastImage}
+          copyImagePathFunction={copyPath}
+          copyImageFunction={copyImage}
         ></FullScreenImageView>
       ) : null}
 
+      {displayCopyMessage ? (
+        <MessagePopup
+          message={copyMessage}
+          showing={displayCopyMessage}
+        ></MessagePopup>
+      ) : null}
       <OpenButton
         openSingleImageCallback={openSingleImageCallback}
         setImagePaths={setImagePaths}
