@@ -89,9 +89,7 @@ function AppContainer() {
 
   const updateImageLikedState = () => {
     const newRecentImages = recentImages.map((item) => {
-      if (
-        recentImages.map((recentItem) => recentItem.path).includes(item.path)
-      ) {
+      if (likedImages.map((likedItem) => likedItem.path).includes(item.path)) {
         item.liked = true;
       } else {
         item.liked = false;
@@ -99,6 +97,16 @@ function AppContainer() {
       return item;
     });
     setRecentImages(newRecentImages);
+
+    const newFolderImages = folderImages.map((item) => {
+      if (likedImages.map((likedItem) => likedItem.path).includes(item.path)) {
+        item.liked = true;
+      } else {
+        item.liked = false;
+      }
+      return item;
+    });
+    setFolderImages(newFolderImages);
   };
 
   const onSearch = (searchTerm: string) => {
@@ -116,29 +124,6 @@ function AppContainer() {
       handleImageClickForRecent(allImages[found]);
       fetchRecent();
     }
-  };
-
-  //const likedClickCallback = (index: number) => {
-  const likedClickCallback = async (index: number) => {
-    try {
-      // 获取当前点击的图片路径和其他相关信息
-      const imagePath = folderImages[index].path;
-      const isLiked = likedImages.map((item) => item.path).includes(imagePath);
-      const tags: any[] = []; // 假设这里有图片的标签信息
-
-      // 保存更新后的喜欢状态
-      const updatedLikedImages = await window.connectionAPIs.saveLikedImages(
-        imagePath,
-        !isLiked,
-        tags,
-      );
-
-      // 更新组件状态
-      setLikedImages(updatedLikedImages);
-    } catch (error) {
-      console.error('Error updating liked image:', error);
-    }
-    // };
   };
 
   const openSingleImageCallback = (path: string) => {
