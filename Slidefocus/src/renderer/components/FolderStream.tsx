@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
 import ExpandPanelTitle from './ExpandPanelTitle';
-import { useRencentFiles } from '../hooks/useRencentFiles';
-
+import { handleImageClickForRecent } from '../utils/handleSaveImagesList';
 
 /*
   1. 读取下一张图片
@@ -11,38 +10,27 @@ import { useRencentFiles } from '../hooks/useRencentFiles';
   3. 如果宽度小于等于剩余宽度，则放入剩余宽度中并回到第1步，否则进入第4步
   4. 转移到第二行，将上一行的最后一张宽度占满，如果宽度大于第二行行宽，则裁剪到行宽并放入，如果小于则放入；回到第1步
 */
-type ImagePathsType = 'folder' ;
+type ImagePathsType = 'folder';
 
-
-export default function ImageStream({
-  likedImagePaths,
+export default function FolderStream({
   folderImagePaths,
-  ShowViewerFunction,
+  ClickCallback,
 }: {
-  likedImagePaths: string[] | null;
   folderImagePaths: string[] | null;
-  ShowViewerFunction: Function;
+  ClickCallback: Function;
 }) {
   let FOLLOW_WINDOW_HEIGHT = 300;
   const MIN_DISPLAY_WIDTH = 300;
 
   const [folderVisible, setFolderVisible] = useState<boolean>(false);
-  const [folderStreamContainer, setFolderStreamContainer] = useState<any[][]>([]);
-  const [folderImageCache, setFolderImageCache] = useState<HTMLImageElement[]>([]);
+  const [folderStreamContainer, setFolderStreamContainer] = useState<any[][]>(
+    [],
+  );
+  const [folderImageCache, setFolderImageCache] = useState<HTMLImageElement[]>(
+    [],
+  );
 
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
-
-  const {recentImagePaths, refresh, setRefresh } = useRencentFiles();
-
-  const handleImageClick = async (imagePath: any, liked: any, tags: any) => {
-    const updatedClickedImagePaths = await window.connectionAPIs.saveRecentImages(
-      imagePath,
-      liked,
-      tags
-    );
-    setRefresh(!refresh);
-    //window.connectionAPIs.setState({ clickedImagePaths: updatedClickedImagePaths });
-  };
 
   const initFolderImages = (shouldbuildPath: boolean) => {
     if (!folderImagePaths) {
@@ -67,7 +55,7 @@ export default function ImageStream({
     } else {
       buildImageStream('folder', folderImageCache);
     }
-  }
+  };
 
   /*const initImages = (type: ImagePathsType, shouldbuildPath: boolean) => {
     debugger;
@@ -115,7 +103,6 @@ export default function ImageStream({
     }
   };*/
 
-
   useEffect(() => {
     initAllImages();
   }, [windowSize.height]);
@@ -123,7 +110,6 @@ export default function ImageStream({
   useEffect(() => {
     initFolderImages(true);
   }, [folderImagePaths]);
-
 
   useEffect(() => {
     console.log('streamContainer: ' + folderStreamContainer);
@@ -137,9 +123,12 @@ export default function ImageStream({
 
   const initAllImages = () => {
     initFolderImages(false);
-  }
+  };
 
-  const buildImageStream = (type: ImagePathsType, imageTempContainer: HTMLImageElement[]) => {
+  const buildImageStream = (
+    type: ImagePathsType,
+    imageTempContainer: HTMLImageElement[],
+  ) => {
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
@@ -166,8 +155,8 @@ export default function ImageStream({
             style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
             className="transition hover:scale-110 hover:shadow-2xl"
             onClick={() => {
-              ShowViewerFunction(i);
-              handleImageClick(imageTempContainer[i].src, false, '');
+              ClickCallback(i);
+              handleImageClickForRecent(imageTempContainer[i].src, false, '');
             }}
           />,
         );
@@ -190,8 +179,12 @@ export default function ImageStream({
               }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i - 1);
-                handleImageClick(imageTempContainer[i - 1].src, false, '');
+                ClickCallback(i - 1);
+                handleImageClickForRecent(
+                  imageTempContainer[i - 1].src,
+                  false,
+                  '',
+                );
               }}
             />
           </div>,
@@ -213,8 +206,8 @@ export default function ImageStream({
               }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i);
-                handleImageClick(imageTempContainer[i].src, false, '');
+                ClickCallback(i);
+                handleImageClickForRecent(imageTempContainer[i].src, false, '');
               }}
             />,
           );
@@ -226,8 +219,8 @@ export default function ImageStream({
               style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i);
-                handleImageClick(imageTempContainer[i].src, false, '');
+                ClickCallback(i);
+                handleImageClickForRecent(imageTempContainer[i].src, false, '');
               }}
             />,
           );
@@ -239,13 +232,13 @@ export default function ImageStream({
       if (processed == imageTempContainer.length) {
         _streamContainer.push(rowContainer1!);
       }
-            setFolderStreamContainer(_streamContainer);
+      setFolderStreamContainer(_streamContainer);
     }
   };
 
   const buildImageRows = (type: ImagePathsType) => {
     let container;
-        container = folderStreamContainer;
+    container = folderStreamContainer;
 
     const result = [];
     for (let i = 0; i < container!.length; i++) {
@@ -268,7 +261,7 @@ export default function ImageStream({
   const container = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="app-stream-grid app-stream px-5" ref={container}>
+    <div ref={container}>
       <ExpandPanelTitle
         expandFunction={switchFolder}
         title="打开的文件夹路径"

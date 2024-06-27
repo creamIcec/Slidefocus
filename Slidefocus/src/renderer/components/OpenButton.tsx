@@ -1,14 +1,14 @@
-export default function ImageOpenButton({
-  setPath,
+export default function OpenButton({
+  openSingleImageCallback,
   setImagePaths,
 }: {
-  setPath: Function;
+  openSingleImageCallback: Function;
   setImagePaths: Function;
 }) {
   const handleOpenFile = async () => {
     try {
       const imagePath = await window.connectionAPIs.readLocalImage();
-      setPath('app://' + imagePath);
+      openSingleImageCallback('app://' + imagePath);
     } catch (error) {
       console.error('读取本地图像时出错:', error);
     }

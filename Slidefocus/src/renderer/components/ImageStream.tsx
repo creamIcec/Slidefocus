@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
 import ExpandPanelTitle from './ExpandPanelTitle';
-import { useRencentFiles } from '../hooks/useRencentFiles';
-
+import { useRencentFiles } from '../hooks/useRencentImages';
 
 /*
   1. 读取下一张图片
@@ -13,6 +12,8 @@ import { useRencentFiles } from '../hooks/useRencentFiles';
 */
 
 type ImagePathsType = 'folder' | 'recent' | 'liked';
+
+/*
 
 export default function ImageStream({
   likedImagePaths,
@@ -29,23 +30,30 @@ export default function ImageStream({
   const [recentVisible, setRecentVisible] = useState<boolean>(false);
   const [likedVisible, setLikedVisible] = useState<boolean>(false);
   const [folderVisible, setFolderVisible] = useState<boolean>(false);
-  const [folderStreamContainer, setFolderStreamContainer] = useState<any[][]>([]);
-  const [recentStreamContainer, setRecentStreamContainer] = useState<any[][]>([]);
+  const [folderStreamContainer, setFolderStreamContainer] = useState<any[][]>(
+    [],
+  );
+  const [recentStreamContainer, setRecentStreamContainer] = useState<any[][]>(
+    [],
+  );
   const [likedStreamContainer, setLikedStreamContainer] = useState<any[][]>([]);
-  const [folderImageCache, setFolderImageCache] = useState<HTMLImageElement[]>([]);
-  const [recentImageCache, setRecentImageCache] = useState<HTMLImageElement[]>([]);
-  const [likedImageCache, setLikedImageCache] = useState<HTMLImageElement[]>([]);
+  const [folderImageCache, setFolderImageCache] = useState<HTMLImageElement[]>(
+    [],
+  );
+  const [recentImageCache, setRecentImageCache] = useState<HTMLImageElement[]>(
+    [],
+  );
+  const [likedImageCache, setLikedImageCache] = useState<HTMLImageElement[]>(
+    [],
+  );
 
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
-  const {recentImagePaths, refresh, setRefresh } = useRencentFiles();
+  const { recentImagePaths, refresh, setRefresh } = useRencentFiles();
 
   const handleImageClick = async (imagePath: any, liked: any, tags: any) => {
-    const updatedClickedImagePaths = await window.connectionAPIs.saveRecentImages(
-      imagePath,
-      liked,
-      tags
-    );
+    const updatedClickedImagePaths =
+      await window.connectionAPIs.saveRecentImages(imagePath, liked, tags);
     setRefresh(!refresh);
     //window.connectionAPIs.setState({ clickedImagePaths: updatedClickedImagePaths });
   };
@@ -73,7 +81,7 @@ export default function ImageStream({
     } else {
       buildImageStream('folder', folderImageCache);
     }
-  }
+  };
 
   const initRecentImages = (shouldbuildPath: boolean) => {
     if (!recentImagePaths) {
@@ -98,7 +106,7 @@ export default function ImageStream({
     } else {
       buildImageStream('recent', recentImageCache);
     }
-  }
+  };
 
   const initLikedImages = (shouldbuildPath: boolean) => {
     if (!likedImagePaths) {
@@ -123,7 +131,7 @@ export default function ImageStream({
     } else {
       buildImageStream('liked', likedImageCache);
     }
-  }
+  };
 
   /*const initImages = (type: ImagePathsType, shouldbuildPath: boolean) => {
     debugger;
@@ -169,7 +177,7 @@ export default function ImageStream({
           break;
       }
     }
-  };*/
+  };
 
   useEffect(() => {
     initRecentImages(true);
@@ -214,9 +222,12 @@ export default function ImageStream({
     initFolderImages(false);
     initRecentImages(false);
     initLikedImages(false);
-  }
+  };
 
-  const buildImageStream = (type: ImagePathsType, imageTempContainer: HTMLImageElement[]) => {
+  const buildImageStream = (
+    type: ImagePathsType,
+    imageTempContainer: HTMLImageElement[],
+  ) => {
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
@@ -316,24 +327,23 @@ export default function ImageStream({
       if (processed == imageTempContainer.length) {
         _streamContainer.push(rowContainer1!);
       }
-      switch(type){
-          case 'folder':
-            setFolderStreamContainer(_streamContainer);
-            break;
-          case 'recent':
-            setRecentStreamContainer(_streamContainer);
-            break;
-          case 'liked':
-            setLikedStreamContainer(_streamContainer);
-            break;
+      switch (type) {
+        case 'folder':
+          setFolderStreamContainer(_streamContainer);
+          break;
+        case 'recent':
+          setRecentStreamContainer(_streamContainer);
+          break;
+        case 'liked':
+          setLikedStreamContainer(_streamContainer);
+          break;
       }
-      
     }
   };
 
   const buildImageRows = (type: ImagePathsType) => {
     let container;
-    switch(type){
+    switch (type) {
       case 'folder':
         container = folderStreamContainer;
         break;
@@ -399,3 +409,5 @@ export default function ImageStream({
     </div>
   );
 }
+
+*/

@@ -3,15 +3,13 @@ import LikeButton from './LikeButton';
 
 export default function FullScreenImageView({
   imagePaths,
-  imageIndex,
+  imagePath,
   closeImageViewFunction,
 }: {
   imagePaths: string[];
-  imageIndex: number;
+  imagePath: string;
   closeImageViewFunction: Function;
 }) {
-  console.log(imageIndex);
-  console.log(imagePaths[imageIndex]);
   return (
     <div className="w-full h-full fixed top-0 left-0 bg-yellow-300/40 backdrop-blur-sm">
       <div className="fullscreen-grid-layout pointer-events-auto">
@@ -37,7 +35,7 @@ export default function FullScreenImageView({
         </div>
         <div className="fullscreen-image-grid">
           <img
-            src={imagePaths[imageIndex]}
+            src={imagePath}
             style={{ width: '100%', height: '100%', objectFit: 'contain' }}
           />
         </div>

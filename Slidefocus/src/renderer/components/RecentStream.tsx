@@ -2,8 +2,7 @@ import { useEffect, useRef, useState } from 'react';
 import { useWindowSize } from '../hooks/useWindowSize';
 import BackToTopButton from './Back2top';
 import ExpandPanelTitle from './ExpandPanelTitle';
-import { useRencentFiles } from '../hooks/useRencentFiles';
-
+import { useRencentFiles } from '../hooks/useRencentImages';
 
 /*
   1. 读取下一张图片
@@ -12,37 +11,28 @@ import { useRencentFiles } from '../hooks/useRencentFiles';
   4. 转移到第二行，将上一行的最后一张宽度占满，如果宽度大于第二行行宽，则裁剪到行宽并放入，如果小于则放入；回到第1步
 */
 
-type ImagePathsType ='recent';
+type ImagePathsType = 'recent';
 
-export default function ImageStream({
-  likedImagePaths,
-  folderImagePaths,
-  ShowViewerFunction,
+export default function RecentStream({
+  recentImagePaths,
+  ClickCallback,
 }: {
-  likedImagePaths: string[] | null;
-  folderImagePaths: string[] | null;
-  ShowViewerFunction: Function;
+  recentImagePaths: string[];
+  ClickCallback: Function;
 }) {
   let FOLLOW_WINDOW_HEIGHT = 300;
   const MIN_DISPLAY_WIDTH = 300;
 
   const [recentVisible, setRecentVisible] = useState<boolean>(false);
-  const [recentStreamContainer, setRecentStreamContainer] = useState<any[][]>([]);
-  const [recentImageCache, setRecentImageCache] = useState<HTMLImageElement[]>([]);
+  const [recentStreamContainer, setRecentStreamContainer] = useState<any[][]>(
+    [],
+  );
+  const [recentImageCache, setRecentImageCache] = useState<HTMLImageElement[]>(
+    [],
+  );
 
   const windowSize = useWindowSize(); //监听窗口大小变化的钩子
 
-  const {recentImagePaths, refresh, setRefresh } = useRencentFiles();
-
-  const handleImageClick = async (imagePath: any, liked: any, tags: any) => {
-    const updatedClickedImagePaths = await window.connectionAPIs.saveRecentImages(
-      imagePath,
-      liked,
-      tags
-    );
-    setRefresh(!refresh);
-    //window.connectionAPIs.setState({ clickedImagePaths: updatedClickedImagePaths });
-  };
   const initRecentImages = (shouldbuildPath: boolean) => {
     if (!recentImagePaths) {
       return;
@@ -66,7 +56,7 @@ export default function ImageStream({
     } else {
       buildImageStream('recent', recentImageCache);
     }
-  }
+  };
 
   /*const initImages = (type: ImagePathsType, shouldbuildPath: boolean) => {
     debugger;
@@ -138,10 +128,12 @@ export default function ImageStream({
 
   const initAllImages = () => {
     initRecentImages(false);
+  };
 
-  }
-
-  const buildImageStream = (type: ImagePathsType, imageTempContainer: HTMLImageElement[]) => {
+  const buildImageStream = (
+    type: ImagePathsType,
+    imageTempContainer: HTMLImageElement[],
+  ) => {
     const _streamContainer: any[][] = []; //大的容器
     let rowContainer1: any[] | null = null; //前一行的容器
     let rowContainer2: any[] | null = null; //后一行的容器
@@ -168,8 +160,7 @@ export default function ImageStream({
             style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
             className="transition hover:scale-110 hover:shadow-2xl"
             onClick={() => {
-              ShowViewerFunction(i);
-              handleImageClick(imageTempContainer[i].src, false, '');
+              ClickCallback(i);
             }}
           />,
         );
@@ -192,8 +183,7 @@ export default function ImageStream({
               }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i - 1);
-                handleImageClick(imageTempContainer[i - 1].src, false, '');
+                ClickCallback(i - 1);
               }}
             />
           </div>,
@@ -215,8 +205,7 @@ export default function ImageStream({
               }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i);
-                handleImageClick(imageTempContainer[i].src, false, '');
+                ClickCallback(i);
               }}
             />,
           );
@@ -228,8 +217,7 @@ export default function ImageStream({
               style={{ width: displayWidth, height: FOLLOW_WINDOW_HEIGHT }}
               className="transition hover:scale-110 hover:shadow-2xl"
               onClick={() => {
-                ShowViewerFunction(i);
-                handleImageClick(imageTempContainer[i].src, false, '');
+                ClickCallback(i);
               }}
             />,
           );
@@ -241,13 +229,13 @@ export default function ImageStream({
       if (processed == imageTempContainer.length) {
         _streamContainer.push(rowContainer1!);
       }
-            setRecentStreamContainer(_streamContainer);
+      setRecentStreamContainer(_streamContainer);
     }
   };
 
   const buildImageRows = (type: ImagePathsType) => {
     let container;
-        container = recentStreamContainer;
+    container = recentStreamContainer;
 
     const result = [];
     for (let i = 0; i < container!.length; i++) {
@@ -270,7 +258,7 @@ export default function ImageStream({
   const container = useRef<HTMLDivElement>(null);
 
   return (
-    <div className="app-stream-grid app-stream px-5" ref={container}>
+    <div ref={container}>
       <ExpandPanelTitle
         expandFunction={switchRecent}
         title="最近看过"

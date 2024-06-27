@@ -37,10 +37,9 @@ class AppUpdater {
   }
 }
 
-
 //保存喜欢的图片路径
 ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
-  const existingImage = clickedImages.find(img => img.path === imagePath);
+  const existingImage = clickedImages.find((img) => img.path === imagePath);
   if (existingImage) {
     existingImage.liked = liked;
     existingImage.tags = tags;
@@ -48,7 +47,9 @@ ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
     clickedImages.push({ path: imagePath, liked, tags });
   }
 
-  console.log(`Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`);
+  console.log(
+    `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
+  );
   fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
   return clickedImages;
 });
@@ -60,9 +61,12 @@ function isHTMLElement(element: Element): element is HTMLElement {
 // 保存被点击图片对象
 const clickedImages: any[] = [];
 //定义最近浏览的最大保存图片数量
-const MAX_QUEUE_LENGTH = 10
+const MAX_QUEUE_LENGTH = 10;
 //保存图片路径的json文件
-const clickedImagePathsFilePath = path.join(__dirname, 'clicked-image-paths.json');
+const clickedImagePathsFilePath = path.join(
+  __dirname,
+  'clicked-image-paths.json',
+);
 //保存浏览过的图片路径
 /*ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
   // 检查 clickedImagePaths 是否已经存在该图片的记录
@@ -260,11 +264,16 @@ const setUpChannels = () => {
   });
   ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
     // 检查内存区中是否已经存在该图片信息
-    const existingImageIndex = clickedImages.findIndex(img => img.path === imagePath);
-  
+    const existingImageIndex = clickedImages.findIndex(
+      (img) => img.path === imagePath,
+    );
+
     if (existingImageIndex !== -1) {
       // 如果图片信息已存在,且信息完全相同,则将其移动到最前面
-      if (clickedImages[existingImageIndex].liked === liked && clickedImages[existingImageIndex].tags.join(',') === tags.join(',')) {
+      if (
+        clickedImages[existingImageIndex].liked === liked &&
+        clickedImages[existingImageIndex].tags.join(',') === tags.join(',')
+      ) {
         clickedImages.splice(existingImageIndex, 1);
         clickedImages.unshift({ path: imagePath, liked, tags });
       } else {
@@ -276,22 +285,26 @@ const setUpChannels = () => {
     } else {
       // 如果图片信息不存在,则添加新的信息
       clickedImages.unshift({ path: imagePath, liked, tags });
-  
+
       // 如果超过最大上限,则删除最早的一条记录
       if (clickedImages.length > MAX_QUEUE_LENGTH) {
         clickedImages.pop();
       }
     }
-  
+
     // 将更新后的数据写入JSON文件
     fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
-  
-    console.log(`Saved clicked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`);
+
+    console.log(
+      `Saved clicked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
+    );
     return clickedImages;
   });
   ipcMain.handle('get-recent-image-paths', async (event) => {
-   const data = fs.readFileSync(clickedImagePathsFilePath, {encoding: 'utf-8'});
-   return JSON.parse(data.toString());
+    const data = fs.readFileSync(clickedImagePathsFilePath, {
+      encoding: 'utf-8',
+    });
+    return JSON.parse(data.toString());
   });
 };
 
@@ -316,15 +329,17 @@ const setUpProtocol = () => {
 
 //所有需要在应用启动的时候建立的事件监听
 const onStart = () => {
-  const data = fs.readFileSync(clickedImagePathsFilePath, {encoding: 'utf-8'});
-  if(!data){
+  const data = fs.readFileSync(clickedImagePathsFilePath, {
+    encoding: 'utf-8',
+  });
+  if (!data) {
     return;
   }
   const clickedImageObjects = JSON.parse(data.toString());
-  for(let item of clickedImageObjects){
+  for (let item of clickedImageObjects) {
     clickedImages.push(item);
   }
-}
+};
 
 /**
  * Add event listeners...
@@ -341,7 +356,6 @@ app.on('window-all-closed', () => {
 app
   .whenReady()
   .then(() => {
-
     onStart();
 
     createWindow();
@@ -350,10 +364,8 @@ app
       // dock icon is clicked and there are no other windows open.
       if (mainWindow === null) createWindow();
     });
-    
+
     setUpChannels();
     setUpProtocol();
-    
   })
   .catch(console.log);
-  
