@@ -38,7 +38,7 @@ class AppUpdater {
 }
 
 //保存喜欢的图片路径
-ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
+/*ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
   const existingImage = clickedImages.find((img) => img.path === imagePath);
   if (existingImage) {
     existingImage.liked = liked;
@@ -56,16 +56,22 @@ ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
 
 function isHTMLElement(element: Element): element is HTMLElement {
   return 'dataset' in element;
-}
+}*/
 
 // 保存被点击图片对象
 const clickedImages: any[] = [];
+const likedImages: any[] = [];
 //定义最近浏览的最大保存图片数量
 const MAX_QUEUE_LENGTH = 10;
 //保存图片路径的json文件
 const clickedImagePathsFilePath = path.join(
   __dirname,
   'clicked-image-paths.json',
+);
+//保存喜欢的图片路径的json文件
+const likedImagePathsFilePath = path.join(
+  __dirname,
+  'liked-image-paths.json',
 );
 //保存浏览过的图片路径
 /*ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
@@ -300,11 +306,44 @@ const setUpChannels = () => {
     );
     return clickedImages;
   });
+  ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
+    // 检查内存区中是否已经存在该图片信息
+    const existingImageIndex = likedImages.findIndex(
+      (img) => img.path === imagePath
+    );
+    if (existingImageIndex !== -1) {
+      // 如果图片信息已存在,且用户不喜欢该图片,则删除该图片信息
+      if (!liked) {
+        likedImages.splice(existingImageIndex, 1);
+      } else {
+        // 如果图片信息已存在,且用户喜欢该图片,则更新信息
+        likedImages[existingImageIndex].liked = liked;
+        likedImages[existingImageIndex].tags = tags;
+      }
+    } else {
+      // 如果图片信息不存在,则添加新的信息,将liked设置为true
+      likedImages.unshift({ path: imagePath, liked: true, tags });
+    }
+  
+    // 将更新后的数据写入JSON文件
+    fs.writeFileSync(likedImagePathsFilePath, JSON.stringify(likedImages));
+  
+    console.log(
+      `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`
+    );
+    return likedImages;
+  });
   ipcMain.handle('get-recent-image-paths', async (event) => {
     const data = fs.readFileSync(clickedImagePathsFilePath, {
       encoding: 'utf-8',
     });
     return JSON.parse(data.toString());
+  });
+  ipcMain.handle('get-liked-image-paths', async (event) => {
+    const likeddata = fs.readFileSync(likedImagePathsFilePath, {
+      encoding: 'utf-8',
+    });
+    return JSON.parse(likeddata.toString());
   });
 };
 

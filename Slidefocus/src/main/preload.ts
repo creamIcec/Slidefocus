@@ -75,6 +75,30 @@ const ConnectionHandler = {
       return [];
     }
   },
+  readLikedImages: async () => {
+    try {
+      const LikedImages = await ipcRenderer.invoke('get-Liked-image-paths');
+      return LikedImages;
+    } catch (error) {
+      console.error('读取收藏夹中的照片时发生错误:', error);
+      return [];
+    }
+  },
+  saveLikedImages: async (imagePath: any, liked: any, tags: any) => {
+    try {
+      // 向主进程发送保存点击图片信息的请求
+      const updatedLikedImagePaths = await ipcRenderer.invoke(
+        'save-liked-image',
+        imagePath,
+        liked,
+        tags,
+      );
+      return updatedLikedImagePaths;
+    } catch (error) {
+      console.error('Error saving or reading licked image:', error);
+      return [];
+    }
+  },
 
   //读取文件夹中的图片
   readLocalFolder: async () => {
@@ -99,21 +123,6 @@ const ConnectionHandler = {
     }
   },
 
-  //读取收藏夹中的图片
-  readFavoriteImages: async () => {
-    try {
-      const favoritedImagePaths = await ipcRenderer.invoke(
-        'get-favorited-image-paths',
-      );
-      const favoriteImages = await Promise.all(
-        favoritedImagePaths.map(ConnectionHandler.readLocalImage),
-      );
-      return favoriteImages;
-    } catch (error) {
-      console.error('读取收藏夹中的照片时发生错误:', error);
-      return [];
-    }
-  },
 };
 
 contextBridge.exposeInMainWorld('connectionAPIs', ConnectionHandler);

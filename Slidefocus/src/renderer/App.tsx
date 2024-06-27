@@ -56,7 +56,28 @@ function AppContainer() {
     fetchRecent();
   };
 
-  const likedClickCallback = (index: number) => {};
+  //const likedClickCallback = (index: number) => {
+    const likedClickCallback = async (index: number) => {
+      try {
+        // 获取当前点击的图片路径和其他相关信息
+        const imagePath = folderImagePaths[index];
+        const isLiked = likedImagePaths.includes(imagePath);
+        const tags: any[] = []; // 假设这里有图片的标签信息
+    
+        // 保存更新后的喜欢状态
+        const updatedLikedImagePaths = await window.connectionAPIs.saveLikedImages(
+          imagePath,
+          !isLiked,
+          tags
+        );
+    
+        // 更新组件状态
+        setLikedImagePaths(updatedLikedImagePaths);
+      } catch (error) {
+        console.error('Error updating liked image:', error);
+      }
+   // };
+  };
 
   const openSingleImageCallback = (path: string) => {
     setImagePath(path);
@@ -137,7 +158,7 @@ function AppContainer() {
   }
 
   async function fetchLiked() {
-    const likedImages = await window.connectionAPIs.readFavoriteImages();
+    const likedImages = await window.connectionAPIs.readLikedImages();
     setLikedImagePaths(likedImages.map((item: any) => item.path));
   }
 
@@ -145,7 +166,7 @@ function AppContainer() {
     setCopyMessage(message);
     setDisplayCopyMessage(true);
   }
-
+//一键复制路径
   function copyPath() {
     const content = imagePath;
     const systemPath = content.slice(6, content.length);
@@ -165,7 +186,7 @@ function AppContainer() {
       updateCopyMessage('请尝试重新复制');
     }
   }
-
+//一键复制图片
   function copyImage() {
     var canvas = document.createElement('canvas'); // 创建一个画板
     let image = new Image();
