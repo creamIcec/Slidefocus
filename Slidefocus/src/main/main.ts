@@ -14,12 +14,10 @@ import { autoUpdater } from 'electron-updater';
 import fs from 'fs';
 import path from 'path';
 import util from 'util';
-import { readImage } from './app/readImage';
 import MenuBuilder from './menu';
 import { resolveHtmlPath } from './util';
 
 import { ImageRawRecord } from '../renderer/App';
-import Protocol from './app/protocol';
 import { APP_PROTOCOL, FILE_PROTOCOL } from '../renderer/constants';
 
 class AppUpdater {
@@ -30,29 +28,8 @@ class AppUpdater {
   }
 }
 
-//保存喜欢的图片路径
-/*ipcMain.handle('save-liked-image', (event, imagePath, liked, tags) => {
-  const existingImage = clickedImages.find((img) => img.path === imagePath);
-  if (existingImage) {
-    existingImage.liked = liked;
-    existingImage.tags = tags;
-  } else {
-    clickedImages.push({ path: imagePath, liked, tags });
-  }
-
-  console.log(
-    `Saved liked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`,
-  );
-  fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
-  return clickedImages;
-});
-
-function isHTMLElement(element: Element): element is HTMLElement {
-  return 'dataset' in element;
-}*/
-
 // 保存被点击图片对象
-const clickedImages: any[] = [];
+const clickedImages: ImageRawRecord[] = [];
 const likedImages: ImageRawRecord[] = [];
 //定义最近浏览的最大保存图片数量
 const MAX_QUEUE_LENGTH = 10;
@@ -63,29 +40,6 @@ const MAX_QUEUE_LENGTH = 10;
 );*/
 const clickedImagePathsFilePath = './clicked-images-paths.json';
 const likedImagePathsFilePath = './liked-image-paths.json';
-//保存喜欢的图片路径的json文件
-/*const likedImagePathsFilePath = path.join(__dirname, 'liked-image-paths.json');*/
-//保存浏览过的图片路径
-/*ipcMain.handle('save-clicked-image', (event, imagePath, liked, tags) => {
-  // 检查 clickedImagePaths 是否已经存在该图片的记录
-  const existingRecord = clickedImagePaths.find(item => item.path === imagePath);
-  if (existingRecord) {
-    // 更新现有记录的喜欢和标签信息
-    existingRecord.liked = liked;
-    existingRecord.tags = tags;
-  } else {
-    // 添加新的记录
-    clickedImagePaths.push({
-      path: imagePath,
-      liked: liked,
-      tags: tags
-    });
-  }
-
-  console.log(`Saved clicked image path: ${imagePath}, liked: ${liked}, tags: ${tags}`);
-  fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImagePaths), );
-  return clickedImagePaths;
-});*/
 
 //
 let mainWindow: BrowserWindow | null = null;
@@ -193,8 +147,17 @@ const updateRecentLikedState = () => {
   clickedImages.length = 0;
   clickedImages.push(...newClickedImages);
 
+  const result = newClickedImages.map((item) => {
+    return {
+      path: decodeURIComponent(item.path),
+      liked: item.liked,
+      tags: item.tags,
+      lastModified: item.lastModified,
+    } as ImageRawRecord;
+  });
+
   // 将更新后的数据写入JSON文件
-  fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
+  fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(result));
 };
 
 //建立所有的前后通信通道
@@ -293,6 +256,7 @@ const setUpChannels = () => {
       return filePaths;
     }
   });
+
   ipcMain.handle('save-clicked-image', (event, image: ImageRawRecord) => {
     // 检查内存区中是否已经存在该图片信息
     const existingImageIndex = clickedImages.findIndex(
@@ -310,11 +274,12 @@ const setUpChannels = () => {
           path: image.path,
           liked: image.liked,
           tags: image.tags,
+          lastModified: image.lastModified,
         });
       } else {
         // 如果图片信息已存在,但信息不同,则更新信息并将其移动到最前面
         clickedImages[existingImageIndex].liked = image.liked;
-        clickedImages[existingImageIndex].tags = image.liked;
+        clickedImages[existingImageIndex].tags = image.tags;
         clickedImages.unshift(clickedImages.splice(existingImageIndex, 1)[0]);
       }
     } else {
@@ -323,6 +288,7 @@ const setUpChannels = () => {
         path: image.path,
         liked: image.liked,
         tags: image.tags,
+        lastModified: image.lastModified,
       });
 
       // 如果超过最大上限,则删除最早的一条记录
@@ -331,8 +297,17 @@ const setUpChannels = () => {
       }
     }
 
+    const result = clickedImages.map((item) => {
+      return {
+        path: decodeURIComponent(item.path),
+        liked: item.liked,
+        tags: item.tags,
+        lastModified: item.lastModified,
+      } as ImageRawRecord;
+    });
+
     // 将更新后的数据写入JSON文件
-    fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(clickedImages));
+    fs.writeFileSync(clickedImagePathsFilePath, JSON.stringify(result));
 
     console.log(
       `Saved clicked image path: ${image.path}, liked: ${image.liked}, tags: ${image.tags}`,
@@ -359,8 +334,17 @@ const setUpChannels = () => {
       });
     }
 
+    const result = likedImages.map((item) => {
+      return {
+        path: decodeURIComponent(item.path),
+        liked: item.liked,
+        tags: item.tags,
+        lastModified: item.lastModified,
+      } as ImageRawRecord;
+    });
+
     // 将更新后的数据写入JSON文件
-    fs.writeFileSync(likedImagePathsFilePath, JSON.stringify(likedImages));
+    fs.writeFileSync(likedImagePathsFilePath, JSON.stringify(result));
 
     updateRecentLikedState();
 
@@ -381,6 +365,9 @@ const setUpChannels = () => {
       encoding: 'utf-8',
     });
     return JSON.parse(likeddata.toString());
+  });
+  ipcMain.handle('get-app-packaged', async (event) => {
+    return app.isPackaged;
   });
 };
 

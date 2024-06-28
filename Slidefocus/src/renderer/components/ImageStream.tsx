@@ -1,13 +1,9 @@
 import { useEffect, useRef, useState } from 'react';
-import { useWindowSize } from '../hooks/useWindowSize';
-import ExpandPanelTitle from './ExpandPanelTitle';
 import { ImagePathsType, ImageRawRecord } from '../App';
+import { useWindowSize } from '../hooks/useWindowSize';
+import { SortType, sortImageElemets as sortImageElements } from '../utils/sort';
+import ExpandPanelTitle from './ExpandPanelTitle';
 import LikeButton from './LikeButton';
-import {
-  SortType,
-  sortImageElemets as sortImageElements,
-  sortImages,
-} from '../utils/sort';
 
 /*
   1. 读取下一张图片

@@ -7,7 +7,7 @@ export default function MessagePopup({
 }) {
   return (
     <div
-      className={`w-full z-[1001] transition-all bottom-8  fixed  h-16 flex flex-col flex-nowrap place-content-center place-items-center`}
+      className={`w-full z-[1003] transition-all top-8 fixed h-16 flex flex-col flex-nowrap place-content-center place-items-center`}
     >
       <div className="w-48 h-full bg-bg dark:bg-bg_dark/60 rounded-2xl flex flex-col flex-nowrap place-content-center place-items-center">
         <span className="w-full text-center text-base font-bold text-black dark:text-white">

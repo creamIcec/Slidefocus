@@ -3,6 +3,7 @@ import FullScreenButton from './FullScreenButton';
 import LikeButton from './LikeButton';
 
 export default function FullScreenImageView({
+  isSingle,
   image,
   closeImageViewFunction,
   nextImageFunction,
@@ -11,6 +12,7 @@ export default function FullScreenImageView({
   copyImageFunction,
   likedCallback,
 }: {
+  isSingle: boolean;
   image: ImageRawRecord;
   closeImageViewFunction: Function;
   nextImageFunction: Function;
@@ -46,10 +48,12 @@ export default function FullScreenImageView({
           ></FullScreenButton>
         </div>
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-lastarrow-grid">
-          <FullScreenButton
-            icon="arrow_circle_left"
-            onClickFunction={lastImageFunction}
-          ></FullScreenButton>
+          {isSingle ? null : (
+            <FullScreenButton
+              icon="arrow_circle_left"
+              onClickFunction={lastImageFunction}
+            ></FullScreenButton>
+          )}
         </div>
         <div className="fullscreen-image-grid">
           <img
@@ -58,10 +62,12 @@ export default function FullScreenImageView({
           />
         </div>
         <div className="flex flex-nowrap place-content-center place-items-center fullscreen-nextarrow-grid">
-          <FullScreenButton
-            icon="arrow_circle_right"
-            onClickFunction={nextImageFunction}
-          ></FullScreenButton>
+          {isSingle ? null : (
+            <FullScreenButton
+              icon="arrow_circle_right"
+              onClickFunction={nextImageFunction}
+            ></FullScreenButton>
+          )}
         </div>
         <div className="like-button-container">
           <LikeButton

@@ -12,6 +12,11 @@ import TitleBar from './components/TitleBar';
 import ToolBar from './components/ToolBar';
 import { handleImageClickForRecent } from './utils/handleSaveImagesList';
 import { SortType, sortImages } from './utils/sort';
+import {
+  LIKED_IMAGE_TITLE,
+  OPENED_FOLDER_TITLE,
+  RECENT_IMAGE_TITLE,
+} from './constants';
 
 export type ImagePathsType = 'liked' | 'folder' | 'recent' | 'search';
 
@@ -34,6 +39,9 @@ function AppContainer() {
   const [recentImages, setRecentImages] = useState<ImageRawRecord[]>([]); //最近的所有图片
   const [likedImages, setLikedImages] = useState<ImageRawRecord[]>([]); //喜欢的所有图片
   const [imageSortMethod, setImageSortMethod] = useState<SortType>('path');
+  const [isSingleImageLoaded, setIsSingleImageLoaded] =
+    useState<boolean>(false);
+
   const [currentFullView, setCurrentFullView] = useState<CurrentImageViewModel>(
     { streamType: 'folder', index: 0 },
   );
@@ -53,18 +61,17 @@ function AppContainer() {
     setCurrentFullView({ streamType: 'recent', index: index });
   };
 
-  const folderClickCallback = (index: number) => {
+  const folderClickCallback = async (index: number) => {
     setCurrentImage(folderImages[index]);
     setCurrentFullView({ streamType: 'folder', index: index });
-    handleImageClickForRecent(folderImages[index]);
-    fetchRecent();
+    fetchRecent(folderImages[index]);
   };
 
-  const likedClickCallback = (index: number) => {
+  const likedClickCallback = async (index: number) => {
     setCurrentImage(likedImages[index]);
     setCurrentFullView({ streamType: 'liked', index: index });
     handleImageClickForRecent(likedImages[index]);
-    fetchRecent();
+    fetchRecent(folderImages[index]);
   };
 
   const likedCallback = (newLikedImages: ImageRawRecord[]) => {
@@ -85,7 +92,7 @@ function AppContainer() {
     });
     console.log('new folder:');
     console.log(newFolderImages);
-    alert(newFolderImages.map((item) => item.liked));
+    setIsSingleImageLoaded(false);
     setFolderImages(newFolderImages);
   };
 
@@ -123,21 +130,14 @@ function AppContainer() {
         index: found,
       });
       setCurrentImage(allImages[found]);
-      handleImageClickForRecent(allImages[found]);
-      fetchRecent();
+      fetchRecent(allImages[found]);
     }
   };
 
-  const openSingleImageCallback = (path: string) => {
-    const imageObj = {
-      path: path || '',
-      liked: false,
-      tags: '',
-      lastModified: '',
-    };
-    setCurrentImage(imageObj);
-    handleImageClickForRecent(imageObj);
-    fetchRecent();
+  const openSingleImageCallback = (image: ImageRawRecord) => {
+    setCurrentImage(image);
+    setIsSingleImageLoaded(true);
+    fetchRecent(image);
   };
 
   const getFullViewNextIndex = (oldIndex: number, images: ImageRawRecord[]) => {
@@ -190,7 +190,7 @@ function AppContainer() {
     if (flag) {
       return;
     }
-    handleImageClickForRecent({
+    fetchRecent({
       path: path || '',
       liked: false,
       tags: '',
@@ -222,7 +222,7 @@ function AppContainer() {
     if (flag) {
       return;
     }
-    handleImageClickForRecent({
+    fetchRecent({
       path: path || '',
       liked: false,
       tags: '',
@@ -230,10 +230,13 @@ function AppContainer() {
     });
   };
 
-  async function fetchRecent() {
-    const recentImages = await window.connectionAPIs.readRecentImages();
-    sortImages(recentImages, 'path');
-    setRecentImages(recentImages);
+  async function fetchRecent(record: ImageRawRecord) {
+    //const recentImages = await window.connectionAPIs.readRecentImages();
+    //sortImages(recentImages, 'path');
+    //setRecentImages(recentImages);
+    const updatedRecent = await handleImageClickForRecent(record);
+    sortImages(updatedRecent, 'path');
+    setRecentImages(updatedRecent);
   }
 
   async function fetchLiked() {
@@ -247,13 +250,13 @@ function AppContainer() {
     setDisplayCopyMessage(true);
   }
   //一键复制路径
-  function copyPath() {
+  async function copyPath() {
     const content = currentImage?.path;
     if (!content) {
       updateCopyMessage('请尝试重新复制!');
       return;
     }
-    const isPackaged = window.connectionAPIs.getAppIsPackaged();
+    const isPackaged = await window.connectionAPIs.getAppIsPackaged();
     const systemPath = content.slice(isPackaged ? 8 : 6, content.length);
     navigator.clipboard.writeText(systemPath);
     updateCopyMessage('复制路径成功!');
@@ -297,6 +300,12 @@ function AppContainer() {
     setImageSortMethod(sortMethod);
   }
 
+  async function firstFetchRecent() {
+    const recentImages = await window.connectionAPIs.readRecentImages();
+    sortImages(recentImages, 'path');
+    setRecentImages(recentImages);
+  }
+
   useEffect(() => {
     if (currentImage) {
       setIsViewerPresent(true);
@@ -310,7 +319,7 @@ function AppContainer() {
   }, [likedImages]);
 
   useEffect(() => {
-    fetchRecent();
+    firstFetchRecent();
     fetchLiked();
     return () => {};
   }, []); //第一次初始化
@@ -326,7 +335,7 @@ function AppContainer() {
           type="recent"
           ClickCallback={recentClickCallback}
           LikedCallback={likedCallback}
-          title="最近看过"
+          title={RECENT_IMAGE_TITLE}
           sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
@@ -334,7 +343,7 @@ function AppContainer() {
           type="liked"
           ClickCallback={likedClickCallback}
           LikedCallback={likedCallback}
-          title="喜欢的图片"
+          title={LIKED_IMAGE_TITLE}
           sortMethod={imageSortMethod}
         ></ImageStream>
         <ImageStream
@@ -342,7 +351,7 @@ function AppContainer() {
           type="folder"
           ClickCallback={folderClickCallback}
           LikedCallback={likedCallback}
-          title="打开的文件夹路径"
+          title={OPENED_FOLDER_TITLE}
           sortMethod={imageSortMethod}
         ></ImageStream>
         <BackToTopButton container={container}></BackToTopButton>
@@ -351,6 +360,7 @@ function AppContainer() {
       <SideBar></SideBar>
       {isViewerPresent ? (
         <FullScreenImageView
+          isSingle={isSingleImageLoaded}
           image={currentImage!}
           closeImageViewFunction={() => setIsViewerPresent(false)}
           nextImageFunction={fullViewNextImage}

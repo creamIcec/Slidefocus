@@ -1,5 +1,5 @@
 import { ImageRawRecord } from '../App';
-import { sortImagePaths, sortImages } from '../utils/sort';
+import { sortImages } from '../utils/sort';
 
 export default function OpenButton({
   openSingleImageCallback,
@@ -10,8 +10,8 @@ export default function OpenButton({
 }) {
   const handleOpenFile = async () => {
     try {
-      const imagePath = await window.connectionAPIs.readLocalImage();
-      openSingleImageCallback(imagePath);
+      const image = await window.connectionAPIs.readLocalImage();
+      openSingleImageCallback(image);
     } catch (error) {
       console.error('读取本地图像时出错:', error);
     }

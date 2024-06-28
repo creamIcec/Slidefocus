@@ -1,8 +1,7 @@
 // Disable no-unused-vars, broken for spread args
 /* eslint no-unused-vars: off */
-import { contextBridge, ipcRenderer, IpcRendererEvent, app } from 'electron';
+import { IpcRendererEvent, contextBridge, ipcRenderer } from 'electron';
 import { ImageRawRecord } from '../renderer/App';
-import { APP_PROTOCOL, FILE_PROTOCOL } from '../renderer/constants';
 
 export type Channels =
   | 'ipc-example'
@@ -28,8 +27,7 @@ const ConnectionHandler = {
       ipcRenderer.once(channel, (_event, ...args) => func(...args));
     },
   },
-
-  //读取本地的图片
+  //加载本地的图片
   readLocalImage: async () => {
     try {
       const filePaths = await ipcRenderer.invoke('show-open-dialog', {
@@ -53,7 +51,6 @@ const ConnectionHandler = {
       return null;
     }
   },
-
   //保存最近看过的图片
   saveRecentImages: async (image: ImageRawRecord) => {
     try {
@@ -68,7 +65,7 @@ const ConnectionHandler = {
       return [];
     }
   },
-
+  //读取最近看过的图片
   readRecentImages: async () => {
     try {
       const recentImages = await ipcRenderer.invoke('get-recent-image-paths');
@@ -78,6 +75,7 @@ const ConnectionHandler = {
       return [];
     }
   },
+  //读取喜欢的图片
   readLikedImages: async () => {
     try {
       const LikedImages = await ipcRenderer.invoke('get-liked-image-paths');
@@ -87,6 +85,7 @@ const ConnectionHandler = {
       return [];
     }
   },
+  //保存喜欢的图片
   saveLikedImages: async (imagePath: any, liked: any, tags: any) => {
     try {
       // 向主进程发送保存喜欢图片信息的请求
@@ -102,7 +101,7 @@ const ConnectionHandler = {
       return [];
     }
   },
-  //读取文件夹中的图片
+  //读取文件夹中的图片路径
   readLocalFolder: async () => {
     try {
       const folderPaths = await ipcRenderer.invoke(
@@ -128,8 +127,10 @@ const ConnectionHandler = {
       return null;
     }
   },
-  getAppIsPackaged: () => {
-    return app.isPackaged;
+  //获取应用是否打包。开发环境与生产环境下的文件处理协议头不同
+  getAppIsPackaged: async () => {
+    const isPackaged = await ipcRenderer.invoke('get-app-packaged');
+    return isPackaged;
   },
 };
 

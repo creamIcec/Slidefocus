@@ -1,3 +1,4 @@
+import { APP_NAME } from '../constants';
 import TitleBarButton from './TitleBarButton';
 
 export default function TitleBar({
@@ -9,7 +10,7 @@ export default function TitleBar({
     <div className="app-titlebar-grid bg-primary dark:bg-primary_dark  app-titlebar shadow-md">
       <div className="h-full flex flex-row gap-2 place-items-center p-5">
         <div className="font-normal text-2xl font-hanserifr text-black dark:text-white">
-          SlideFocus
+          {APP_NAME}
         </div>
         <div className="mx-10 relative bg-bg dark:bg-bg_dark p-2 rounded-2xl">
           <i className="material-symbols-outlined absolute left-0 px-2 py-1 text-black dark:text-white">

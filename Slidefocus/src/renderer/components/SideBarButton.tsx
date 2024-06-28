@@ -1,4 +1,3 @@
-import { ReactNode } from 'react';
 
 const SideBarButton = ({ icon }: { icon: string }) => {
   return (
