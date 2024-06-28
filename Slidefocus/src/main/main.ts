@@ -177,10 +177,12 @@ const setUpChannels = () => {
   });
   ipcMain.handle('read-local-image', async (event, filePath) => {
     try {
+      const decodedFilePath = decodeURIComponent(filePath);
+
       const image: ImageRawRecord = {
         path: app.isPackaged
-          ? FILE_PROTOCOL + filePath
-          : APP_PROTOCOL + filePath,
+          ? FILE_PROTOCOL + decodedFilePath
+          : APP_PROTOCOL + decodedFilePath,
         liked: false,
         tags: '',
         lastModified: '',
@@ -197,8 +199,11 @@ const setUpChannels = () => {
         (filePath: any) => {
           return {
             path: app.isPackaged
-              ? (FILE_PROTOCOL + filePath).replaceAll('\\', '/')
-              : APP_PROTOCOL + filePath,
+              ? (FILE_PROTOCOL + decodeURIComponent(filePath)).replaceAll(
+                  '\\',
+                  '/',
+                )
+              : APP_PROTOCOL + decodeURIComponent(filePath),
             liked: false,
             tags: '',
             lastModified: '',
@@ -414,6 +419,17 @@ const onStart = () => {
     if (err) {
       const emptyJson = JSON.stringify([]);
       fs.writeFileSync(likedImagePathsFilePath, emptyJson);
+    } else {
+      const data = fs.readFileSync(likedImagePathsFilePath, {
+        encoding: 'utf-8',
+      });
+      if (!data) {
+        return;
+      }
+      const likedImageObjects = JSON.parse(data.toString());
+      for (let item of likedImageObjects) {
+        likedImages.push(item);
+      }
     }
   });
 };

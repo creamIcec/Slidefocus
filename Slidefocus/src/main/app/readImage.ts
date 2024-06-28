@@ -7,6 +7,7 @@ import path from 'path';
 function readImageFull() {}
 
 //读取图片(当前使用)
+//@deprecated
 async function readImage(image_path: string) {
   const image = await promises.readFile(image_path, 'binary');
 
