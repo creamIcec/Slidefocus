@@ -194,6 +194,7 @@ export default function ImageStream({
               <img
                 src={imageTempContainer[i].src}
                 style={{
+
                   width: remainingWidth,
                   height: FOLLOW_WINDOW_HEIGHT,
                 }}
@@ -253,7 +254,6 @@ export default function ImageStream({
   const buildImageRows = (type: ImagePathsType) => {
     let container;
     container = streamContainer;
-
     const result = [];
     for (let i = 0; i < container!.length; i++) {
       result.push(
